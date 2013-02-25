@@ -144,7 +144,7 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
     @Override
     public Expression transform(Expression exp) {
 
-        System.out.println(" --> transform: ");// + exp);
+        System.out.println(" --> transform: " + exp);
 
         // don't transform if expression is null
         if (exp == null) {
@@ -167,6 +167,9 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
         // original method args
         ArgumentListExpression mArgs =
                 (ArgumentListExpression) methodCall.getArguments();
+        
+        // instrument argument list (possible method calls as arguments )
+        mArgs = (ArgumentListExpression) mArgs.transformExpression(this);
 
         // instrument method args (possible method calls inside)
         ArgumentListExpression instrumentedMargs = new ArgumentListExpression();

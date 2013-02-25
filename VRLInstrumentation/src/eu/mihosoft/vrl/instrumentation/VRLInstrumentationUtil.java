@@ -74,28 +74,40 @@ public class VRLInstrumentationUtil {
             if (method == null) {
 
                 for (Method m : cls.getMethods()) {
+                    
+//                    System.out.println(">> checking " + m.getName() + " == " + mName);
 
                     if (!m.getName().equals(mName)) {
                         continue;
                     }
 
                     Class<?>[] methodParams = m.getParameterTypes();
+                    
+                    
 
                     if (paramTypes.size() != methodParams.length) {
+//                        System.out.println(" --> numargs differ: " + paramTypes.size() + " == " + methodParams.length);
                         continue;
                     }
 
                     boolean compatibleParameterTypes = true;
 
                     for (int i = 0; i < paramTypes.size(); i++) {
+                        
+//                        System.out.print("marg: sig: " + methodParams[i].getName() + " == given:" + paramTypes.get(i).getName());
+                        
                         if (!VClassLoaderUtil.convertPrimitiveToWrapper(paramTypes.get(i)).getName().
                                 equals(VClassLoaderUtil.convertPrimitiveToWrapper(methodParams[i]).getName())) {
                             compatibleParameterTypes = false;
+//                            System.out.println(" [FALSE]");
                             break;
+                        } else {
+//                            System.out.println(" [TRUE]");
                         }
                     }
 
                     if (compatibleParameterTypes) {
+//                        System.out.println(">> method found!");
                         method = m;
                         break;
                     }
@@ -112,6 +124,11 @@ public class VRLInstrumentationUtil {
                         //
                     }
                 }
+            }
+            
+            if (method == null) {
+//                System.out.println("ERROR: method = null! obj: " + o + ", args: " + args);
+                return null;
             }
 
 
