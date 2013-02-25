@@ -11,14 +11,13 @@ package eu.mihosoft.vrl.instrumentation;
  */
 @VRLInstrumentation 
 class SampleClass { 
+    
+    SampleClass() {
+    }
 
     def greet() {  
         
        System.out.println("GROOVY: " + b(3) + " : " + groovy.lang.GroovySystem.getVersion()); 
-        
-       System.out.println("Hello 1"); 
-         
-       System.out.println("Hello 2"); 
         
         int n = 3; 
         
@@ -34,7 +33,9 @@ class SampleClass {
             System.out.println(" --> i: " + i + " = " + b(val));
 //            
             b(i);    
-        }                  
+        }       
+        
+        System.out.println("FINAL CALL");
     }    
       
     public int b(int i){println("i: " + i); return i*i;};  
