@@ -12,13 +12,15 @@ package eu.mihosoft.vrl.instrumentation
 @VRLInstrumentation
 class SampleClass02 {
 	public void method() {
-            int x = Math.abs(Math.min(3,4));
+        int x = Math.abs(Math.min(3,4));
             
-            double y = Math.sin(Math.sqrt(x*x+2.0*2.0));
+        double y = Math.sin(Math.sqrt(x*x+2.0*2.0));
             
-            println("x= " + x + ", y=" + y);
+        println("x= " + x + ", y=" + y);
             
-            double z = Math.sin(2.3)
-        }
+        double z = Math.sin(2.3)
+            
+        println("z=" + z);
+    }
 }
 

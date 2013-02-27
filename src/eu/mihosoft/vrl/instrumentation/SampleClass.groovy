@@ -5,6 +5,8 @@
 
 package eu.mihosoft.vrl.instrumentation;
 
+import groovy.transform.TypeChecked;
+
 /**
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
@@ -17,16 +19,16 @@ class SampleClass {
 
     def greet() {  
         
-       System.out.println("GROOVY: " + b(c(2,3)) + " : " + groovy.lang.GroovySystem.getVersion()); 
+       System.out.println("GROOVY: " + b(b(b(3-8)+b(2))) + " : " + groovy.lang.GroovySystem.getVersion()); 
         
         int n = 3; 
         
         for(int i = 0; c(i,n); i++) { 
-             
+            
             int val = Math.abs(i-n*2);
             
             (1..10).each {
-                it->println("closure i: " + i)
+                it->println("closure i: " + b(i))
             }  
              
             
@@ -38,11 +40,12 @@ class SampleClass {
         System.out.println("FINAL CALL");
     }    
       
-    public int b(int i){println("i: " + i); return i*i;};  
+    public int b(int i){println("b: " + i); return i*i;};  
     
     public boolean c(int i, int n) {
             return i < n;
     }
+   
 }
    
 

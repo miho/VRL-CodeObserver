@@ -19,6 +19,8 @@ public class VClassLoaderUtil {
             new HashMap<String, Class<?>>();
     private static final Map<String, Class<?>> primitiveWrapperClasses =
             new HashMap<String, Class<?>>();
+    private static final Map<String, Class<?>> wrapperPrimitiveClasses =
+            new HashMap<String, Class<?>>();
     private static final Map<String, Class<?>> primitiveSignatures =
             new HashMap<String, Class<?>>();
     private static final Map<String, String> primitiveSignaturesToFullNames =
@@ -44,10 +46,21 @@ public class VClassLoaderUtil {
         primitiveWrapperClasses.put("long", Long.class);
         primitiveWrapperClasses.put("float", Float.class);
         primitiveWrapperClasses.put("double", Double.class);
-
+        
+        
         // only primitive version of void is used by vrl
         primitiveWrapperClasses.put("void", void.class);
-        
+
+        wrapperPrimitiveClasses.put("Boolean", boolean.class);
+        wrapperPrimitiveClasses.put("Byte", byte.class);
+        wrapperPrimitiveClasses.put("Short", short.class);
+        wrapperPrimitiveClasses.put("Character", char.class);
+        wrapperPrimitiveClasses.put("Integer", int.class);
+        wrapperPrimitiveClasses.put("Long", long.class);
+        wrapperPrimitiveClasses.put("Float", float.class);
+        wrapperPrimitiveClasses.put("Double", double.class);
+
+
 
         primitiveSignatures.put("Z", boolean.class);
         primitiveSignatures.put("B", byte.class);
@@ -72,8 +85,9 @@ public class VClassLoaderUtil {
     }
 
     /**
-     * A replacement for {@link java.lang.ClassLoader#loadClass(java.lang.String)}
-     * which handles array syntax correcectly, e.g.,
+     * A replacement for
+     * {@link java.lang.ClassLoader#loadClass(java.lang.String)} which handles
+     * array syntax correcectly, e.g.,
      * <code>[LString;</code>. <p> Evaluation of Bug 6500212 suggests
      * {@link Class#forName(java.lang.String, boolean, java.lang.ClassLoader) }.
      * But this method does cache classes in the initiating classloader rather
@@ -125,9 +139,7 @@ public class VClassLoaderUtil {
     /**
      * Computes the dimension of the array class specified by name.
      *
-     * @param clsName name, e.g.,
-     * <code>[[I</code> or
-     * <code>[LString;</code>
+     * @param clsName name, e.g., <code>[[I</code> or <code>[LString;</code>
      * @return the dimension of the array class specified by name
      */
     private static int arrayDimension(String clsName) {
@@ -241,6 +253,18 @@ public class VClassLoaderUtil {
 
         return result;
     }
+
+    public static Class<?> convertWrapperToPrimitive(Class<?> clazz) {
+        Class<?> result = clazz;
+
+        if (!clazz.isPrimitive()) {
+
+            return wrapperPrimitiveClasses.get(clazz.getName());
+        }
+
+        return result;
+    }
+    
 
     /**
      * Returns the class object of the primitive type that is specified by name.
