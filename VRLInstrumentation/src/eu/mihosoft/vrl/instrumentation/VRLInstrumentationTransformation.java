@@ -36,7 +36,7 @@ public class VRLInstrumentationTransformation implements ASTTransformation {
     @Override
     public void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
         
-        System.out.println("VISIT: ");
+        System.out.println("VISIT: " + sourceUnit);
 
         // create transformer instance
         MethodCallExpressionTransformer transformer =
@@ -144,7 +144,7 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
     @Override
     public Expression transform(Expression exp) {
 
-        System.out.println(" --> transform: " + exp);
+//        System.out.println(" --> transform: " + exp);
 
         // don't transform if expression is null
         if (exp == null) {
@@ -156,13 +156,18 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
         // we ignore other expressions as we only want to transform/instrument
         // method calls
         if (!(exp instanceof MethodCallExpression)) {
-            System.out.println(" --skipping expression: " + exp.getClass());
+//            System.out.println(" --skipping expression: " + exp.getClass());
 
             return exp.transformExpression(this);
         }
 
         // we have a method call
         MethodCallExpression methodCall = (MethodCallExpression) exp;
+        
+        if (methodCall.getMethod().getText().equals("__instrumentCode")) {
+            System.out.println(" --> skipping already instrumented code");
+            return exp;
+        }
 
         // original method args
         ArgumentListExpression mArgs =
@@ -174,10 +179,11 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
         // instrument method args (possible method calls inside)
         ArgumentListExpression instrumentedMargs = new ArgumentListExpression();
         for (Expression mArg : mArgs.getExpressions()) {
-            instrumentedMargs.addExpression(mArg.transformExpression(this));
+            Expression instrumentedArg = mArg.transformExpression(this);
+            instrumentedMargs.addExpression(instrumentedArg);
+            System.out.println(" -> arg: " + instrumentedArg);
         }
         mArgs = instrumentedMargs;
-
 
         // if the method is the special each(..) method which does not seem
         // to belong to a specific type, show warning and ignore it,
@@ -191,7 +197,6 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
         } else {
             System.out.println(">> instrumenting method " + methodCall.getMethod().getText() + " : " + methodCall.getClass());
         }
-
 
         // name of the object
         String objName = methodCall.getObjectExpression().getText();

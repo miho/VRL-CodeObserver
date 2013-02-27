@@ -4,6 +4,7 @@ package eu.mihosoft.vrl.instrumentation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,15 +38,27 @@ public class VRLInstrumentationUtil {
      */
     public static Object __instrumentCode(boolean staticCall, Object o, String mName, Object[] args) throws Throwable {
 
-        ArrayList<Class<?>> paramTypes = new ArrayList<Class<?>>();
+        ArrayList<Class<?>> paramTypes = new ArrayList<>();
 
         System.out.println("calling " + mName + "(...)");
 
         System.out.println(" --> o: " + o + " : " + o.getClass());
+        
+        if (args==null) {
+            args = new Object[0];
+        }
 
-        for (Object p : args) {
+
+        for (int i = 0; i < args.length;i++) {
+            Object p = args[i];
             System.out.println(" --> arg: " + p + " : " + p.getClass());
             Class<?> c = p.getClass();
+            
+//            if (p instanceof java.math.BigDecimal) {
+//                c = Double.class;
+//                args[i] = ((java.math.BigDecimal)p).doubleValue();
+//            }
+            
             paramTypes.add(c);
         }
         
@@ -70,6 +83,8 @@ public class VRLInstrumentationUtil {
             } catch (NoSuchMethodException ex) {
                 //
             }
+            
+            List<Method> candidates = new ArrayList<>();
 
             if (method == null) {
 
@@ -89,18 +104,26 @@ public class VRLInstrumentationUtil {
 //                        System.out.println(" --> numargs differ: " + paramTypes.size() + " == " + methodParams.length);
                         continue;
                     }
+                    
+                    candidates.add(m);
 
                     boolean compatibleParameterTypes = true;
 
                     for (int i = 0; i < paramTypes.size(); i++) {
                         
+//                        Object p = castParameter(args[i],methodParams);
+                        
 //                        System.out.print("marg: sig: " + methodParams[i].getName() + " == given:" + paramTypes.get(i).getName());
                         
                         if (!VClassLoaderUtil.convertPrimitiveToWrapper(paramTypes.get(i)).getName().
                                 equals(VClassLoaderUtil.convertPrimitiveToWrapper(methodParams[i]).getName())) {
-                            compatibleParameterTypes = false;
-//                            System.out.println(" [FALSE]");
-                            break;
+                            
+                            compatibleParameterTypes = isParamCompatible(args[i], methodParams[i]);
+//                            
+                            if (!compatibleParameterTypes) {
+                                System.out.println(" [FALSE]");
+                                break;
+                            }
                         } else {
 //                            System.out.println(" [TRUE]");
                         }
@@ -125,6 +148,43 @@ public class VRLInstrumentationUtil {
                     }
                 }
             }
+            
+
+            
+//            boolean compatibleParameterTypes = true;
+//            
+//            for(Method m : candidates) {   
+//            
+//            Class<?>[] methodParams = m.getParameterTypes();
+//                
+//                for (int i = 0; i < paramTypes.size(); i++) {
+//                    
+//                    // indicates whether method param can be casted to actual param type
+//                    boolean castable = isCastableFrom(methodParams[i], paramTypes.get(i));
+            
+//                    if castable or type equal 
+//                            
+//                    // perform cast from param type to expected method parameter
+//                    p = castParameter(p,methodParams);
+//                        
+////                        System.out.print("marg: sig: " + methodParams[i].getName() + " == given:" + paramTypes.get(i).getName());
+//                        
+//                        if (!VClassLoaderUtil.convertPrimitiveToWrapper(paramTypes.get(i)).getName().
+//                                equals(VClassLoaderUtil.convertPrimitiveToWrapper(methodParams[i]).getName())) {
+//                            compatibleParameterTypes = false;
+////                            System.out.println(" [FALSE]");
+//                            break;
+//                        } else {
+////                            System.out.println(" [TRUE]");
+//                        }
+//                    }
+//
+//                    if (compatibleParameterTypes) {
+////                        System.out.println(">> method found!");
+//                        method = m;
+//                        break;
+//                    }
+//            }
             
             if (method == null) {
 //                System.out.println("ERROR: method = null! obj: " + o + ", args: " + args);
@@ -155,4 +215,26 @@ public class VRLInstrumentationUtil {
 
         return null;
     }
+
+    private static boolean isParamCompatible(Object param, Class<?> methodParamType) {
+        
+//        Class<?> paramClass = param.getClass();
+//        
+//        if (methodParamType.equals(paramClass)) {
+//            return param;
+//        }
+//        
+//        if (methodParamType.isAssignableFrom(paramClass)) {
+//            return methodParamType.cast(param);
+//        }
+        
+        try {
+            methodParamType.cast(param);
+        } catch (ClassCastException ex) {
+            return false;
+        }
+        
+        return true; 
+    }
+    
 }

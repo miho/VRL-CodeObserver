@@ -14,7 +14,11 @@ class SampleClass02 {
 	public void method() {
             int x = Math.abs(Math.min(3,4));
             
-            println("x= " + x);
+            double y = Math.sin(Math.sqrt(x*x+2.0*2.0));
+            
+            println("x= " + x + ", y=" + y);
+            
+            double z = Math.sin(2.3)
         }
 }
 

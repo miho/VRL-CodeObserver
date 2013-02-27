@@ -17,7 +17,7 @@ class SampleClass {
 
     def greet() {  
         
-       System.out.println("GROOVY: " + b(3) + " : " + groovy.lang.GroovySystem.getVersion()); 
+       System.out.println("GROOVY: " + b(c(2,3)) + " : " + groovy.lang.GroovySystem.getVersion()); 
         
         int n = 3; 
         
