@@ -50,4 +50,34 @@ public class VRLInstrumentationUtil {
 
         return result;
     }
+    
+    /**
+     * Do not call manually! This method will be used by AST transformations to
+     * instrument method calls.
+     *
+     * @param staticCall defines whether method call is a static method call
+     * @param scopeId position in scope
+     * @param controlFlowId position in controlflow
+     * @param o instance the method belongs to
+     * @param mName method name
+     * @param args method arguments
+     * @return return value of the method that shall be instrumented
+     * @throws Throwable
+     */
+    public static Object __instrumentCode(boolean staticCall, int scopeId, int controlFlowId, Object o, String mName, Object[] args) throws Throwable {
+
+        System.out.println(" --> calling " + mName + "(...): scope=" + scopeId + ", controflow=" + controlFlowId);
+
+        Object result = null;
+
+        if (staticCall) {
+            result = org.codehaus.groovy.runtime.InvokerHelper.invokeStaticMethod((Class<?>) o, mName, args);
+        } else {
+            result = org.codehaus.groovy.runtime.InvokerHelper.invokeMethod(o, mName, args);
+        }
+        
+        System.out.println(" --> returning " + result);
+
+        return result;
+    }
 }

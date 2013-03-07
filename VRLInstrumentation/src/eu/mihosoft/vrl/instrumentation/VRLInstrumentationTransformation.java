@@ -33,10 +33,9 @@ public class VRLInstrumentationTransformation implements ASTTransformation {
 
     @Override
     public void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-        
-        StaticTypesTransformation transformation = new StaticTypesTransformation();   
+
+        StaticTypesTransformation transformation = new StaticTypesTransformation();
         transformation.visit(astNodes, sourceUnit);
-       
 
         // create transformer instance
         MethodCallExpressionTransformer transformer =
@@ -44,7 +43,7 @@ public class VRLInstrumentationTransformation implements ASTTransformation {
 
         // apply transformation for each class in the specified source unit
         for (ClassNode clsNode : sourceUnit.getAST().getClasses()) {
-            
+
             transformer.visitClass(clsNode);
         }
     }
@@ -121,12 +120,11 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
             instrumentedMargs.addExpression(instrumentedArg);
             System.out.println(" -> arg: " + instrumentedArg);
         }
-        
+
         mArgs = instrumentedMargs;
 
         System.out.println(">> instrumenting method "
                 + methodCall.getMethod().getText() + " : " + methodCall.getClass());
-
 
         // name of the object
         String objName = methodCall.getObjectExpression().getText();
@@ -151,8 +149,8 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
             finalArgs.addExpression(e);
         }
         try {
-        System.out.println(" --> RET " + methodCall.getMethodTarget().getReturnType()); 
-        } catch(Exception ex) {
+            System.out.println(" --> RET " + methodCall.getMethodTarget().getReturnType());
+        } catch (Exception ex) {
             System.out.println(" --> VOID");
         }
 
