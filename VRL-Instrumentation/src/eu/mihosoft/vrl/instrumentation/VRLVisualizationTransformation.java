@@ -4,10 +4,13 @@
  */
 package eu.mihosoft.vrl.instrumentation;
 
+import eu.mihosoft.vrl.workflow.FlowFactory;
+import eu.mihosoft.vrl.workflow.IdGenerator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import org.codehaus.groovy.transform.ASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
 import org.codehaus.groovy.control.SourceUnit;
@@ -25,7 +28,6 @@ import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.PropertyExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
-import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.EmptyStatement;
 import org.codehaus.groovy.ast.stmt.ForStatement;
 import org.codehaus.groovy.ast.stmt.IfStatement;
@@ -72,6 +74,8 @@ public class VRLVisualizationTransformation implements ASTTransformation {
                 System.out.println(s.toString());
             }
         }
+
+        UIBinding.scopes = scopes;
     }
 }
 
@@ -82,18 +86,51 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
     private Scope rootScope;
     private Scope currentScope;
     private Invocation lastMethod;
+    private Stack<String> vIdStack = new Stack<>();
+    private IdGenerator generator = FlowFactory.newIdGenerator();
 
     public ClassVisitor(SourceUnit sourceUnit, VisualCodeBuilder codeBuilder) {
         this.sourceUnit = sourceUnit;
         this.codeBuilder = codeBuilder;
-        this.rootScope = codeBuilder.createScope(null, ScopeType.NONE, new Object[0]);
+
+        codeBuilder.setIdRequest(new IdRequest() {
+            @Override
+            public String request() {
+                return requestId();
+            }
+        });
+
+        this.rootScope = codeBuilder.createScope(null, ScopeType.NONE, sourceUnit.getName(), new Object[0]);
         this.currentScope = rootScope;
+
+
+    }
+
+    private String requestId() {
+
+        String result = "";
+
+        if (!vIdStack.isEmpty()) {
+            result = vIdStack.pop();
+
+            if (generator.getIds().contains(result)) {
+                System.err.println(">> requestId(): Id already defined: " + result);
+                result = generator.newId();
+            } else {
+                generator.addId(result);
+                System.out.println(">> USING ID: " + result);
+            }
+        } else {
+            result = generator.newId();
+        }
+
+        return result;
     }
 
     @Override
     public void visitClass(ClassNode s) {
 
-        currentScope = codeBuilder.createScope(currentScope, ScopeType.CLASS, new Object[0]);
+        currentScope = codeBuilder.createScope(currentScope, ScopeType.CLASS, s.getName(), new Object[0]);
 
         super.visitClass(s);
 
@@ -103,7 +140,7 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
     @Override
     public void visitMethod(MethodNode s) {
 
-        currentScope = codeBuilder.createScope(currentScope, ScopeType.METHOD, new Object[0]);
+        currentScope = codeBuilder.createScope(currentScope, ScopeType.METHOD, s.getName(), new Object[0]);
 
         super.visitMethod(s);
 
@@ -119,7 +156,7 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
     @Override
     public void visitForLoop(ForStatement s) {
         System.out.println(" --> FOR-LOOP: " + s.getVariable());
-        currentScope = codeBuilder.createScope(currentScope, ScopeType.FOR, new Object[0]);
+        currentScope = codeBuilder.createScope(currentScope, ScopeType.FOR, "for", new Object[0]);
         super.visitForLoop(s);
         currentScope = currentScope.getParent();
 
@@ -128,7 +165,7 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
     @Override
     public void visitWhileLoop(WhileStatement s) {
         System.out.println(" --> WHILE-LOOP: " + s.getBooleanExpression());
-        currentScope = codeBuilder.createScope(currentScope, ScopeType.WHILE, new Object[0]);
+        currentScope = codeBuilder.createScope(currentScope, ScopeType.WHILE, "while", new Object[0]);
         super.visitWhileLoop(s);
         currentScope = currentScope.getParent();
     }
@@ -137,14 +174,14 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
     public void visitIfElse(IfStatement ifElse) {
         System.out.println(" --> IF-STATEMENT: " + ifElse.getBooleanExpression());
 
-        currentScope = codeBuilder.createScope(currentScope, ScopeType.IF, new Object[0]);
+        currentScope = codeBuilder.createScope(currentScope, ScopeType.IF, "if", new Object[0]);
 
         ifElse.getBooleanExpression().visit(this);
         ifElse.getIfBlock().visit(this);
 
         currentScope = currentScope.getParent();
 
-        currentScope = codeBuilder.createScope(currentScope, ScopeType.ELSE, new Object[0]);
+        currentScope = codeBuilder.createScope(currentScope, ScopeType.ELSE, "else", new Object[0]);
 
         Statement elseBlock = ifElse.getElseBlock();
         if (elseBlock instanceof EmptyStatement) {
@@ -186,12 +223,23 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
 
         String objectName = "noname";
 
+        boolean isIdCall = false;
+
         if (s.getObjectExpression() instanceof VariableExpression) {
             VariableExpression ve = (VariableExpression) s.getObjectExpression();
             objectName = ve.getName();
         } else if (s.getObjectExpression() instanceof ClassExpression) {
             ClassExpression ce = (ClassExpression) s.getObjectExpression();
             objectName = ce.getType().getName();
+
+            if (ce.getType().getName().equals(VSource.class.getName())) {
+                isIdCall = true;
+                System.out.println(">> VSource: push");
+                for (Variable arg : arguments) {
+                    System.out.println(" -->" + arg.getValue().toString());
+                    vIdStack.push(arg.getValue().toString());
+                }
+            }
         }
 
         String returnValueName = "void";
@@ -202,8 +250,10 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
             returnValueName = codeBuilder.createVariable(currentScope, "java.lang.Object");
         }
 
-        codeBuilder.invokeMethod(currentScope, objectName, s.getMethod().getText(), isVoid,
-                returnValueName, arguments);
+        if (!isIdCall) {
+            codeBuilder.invokeMethod(currentScope, objectName, s.getMethod().getText(), isVoid,
+                    returnValueName, arguments);
+        }
 
     }
 

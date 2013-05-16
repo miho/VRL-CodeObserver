@@ -14,11 +14,12 @@ import java.util.Map;
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public interface Scope {
+public interface Scope extends CodeEntity{
 
     public Scope getParent();
 
     public ScopeType getType();
+    public String getName();
 
     public Object[] getScopeArgs();
 
@@ -40,20 +41,24 @@ public interface Scope {
 }
 
 class ScopeImpl implements Scope {
-
+    
+    private String id;
     Scope parent;
     ScopeType type;
+    private String name;
     Object[] scopeArgs;
     Map<String, Variable> variables = new HashMap<>();
     ControlFlow controlFlow;
     private List<Scope> scopes = new ArrayList<>();
 
-    public ScopeImpl(Scope parent, ScopeType type, Object[] scopeArgs) {
+    public ScopeImpl(String id, Scope parent, ScopeType type, String name, Object[] scopeArgs) {
+        this.id = id;
         this.parent = parent;
         if (parent != null) {
             this.parent.getScopes().add(this);
         }
         this.type = type;
+        this.name = name;
         this.scopeArgs = scopeArgs;
         this.controlFlow = new ControlFlowImpl();
     }
@@ -172,5 +177,26 @@ class ScopeImpl implements Scope {
         }
 
         return result;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
     }
 }
