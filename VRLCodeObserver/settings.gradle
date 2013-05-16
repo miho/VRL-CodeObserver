@@ -1,1 +1,2 @@
 include "VRLInstrumentation"
+project(':VRLInstrumentation').projectDir = new File(settingsDir, '../VRLInstrumentation')
