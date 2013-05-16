@@ -12,6 +12,7 @@ import groovy.transform.TypeChecked;
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
 @VRLInstrumentation 
+@VRLVisualization
 class SampleClass { 
     
     SampleClass() {
