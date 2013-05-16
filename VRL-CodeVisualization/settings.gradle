@@ -1,0 +1,2 @@
+include "VRL-Instrumentation"
+project(":VRL-Instrumentation").projectDir = new File(settingsDir, "../VRL-Instrumentation")
