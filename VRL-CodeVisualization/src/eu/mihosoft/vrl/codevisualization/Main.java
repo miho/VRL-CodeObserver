@@ -1,6 +1,7 @@
 package eu.mihosoft.vrl.codevisualization;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,6 +51,8 @@ public class Main extends Application {
         primaryStage.setTitle("VRL Demo!");
         primaryStage.setScene(scene);
         primaryStage.show();
+        
+        controller.loadTextFile(new File("../Sample.groovy"));
 
      
     }
