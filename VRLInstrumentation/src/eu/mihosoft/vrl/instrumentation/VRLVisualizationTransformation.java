@@ -82,7 +82,6 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
     private Scope rootScope;
     private Scope currentScope;
     private Invocation lastMethod;
-    
 
     public ClassVisitor(SourceUnit sourceUnit, VisualCodeBuilder codeBuilder) {
         this.sourceUnit = sourceUnit;
@@ -117,13 +116,13 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
 //        super.visitBlockStatement(s);
 //        System.out.println(" --> leave Scope");
 //    }
-    
     @Override
     public void visitForLoop(ForStatement s) {
         System.out.println(" --> FOR-LOOP: " + s.getVariable());
         currentScope = codeBuilder.createScope(currentScope, ScopeType.FOR, new Object[0]);
         super.visitForLoop(s);
         currentScope = currentScope.getParent();
+
     }
 
     @Override
@@ -162,42 +161,18 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
 
     @Override
     public void visitConstructorCallExpression(ConstructorCallExpression s) {
-//        System.out.println(" --> CONSTRUCTOR: " + s.getType());
-//
-//        super.visitConstructorCallExpression(s);
-//
-//        ArgumentListExpression args = (ArgumentListExpression) s.getArguments();
-//
-//        Variable[] arguments = new Variable[args.getExpressions().size()];
-//
-//        for (int i = 0; i < args.getExpressions().size(); i++) {
-//            Expression e = args.getExpression(i);
-//
-//            Variable v = null;
-//
-//            if (e instanceof ConstantExpression) {
-//                ConstantExpression ce = (ConstantExpression) e;
-//
-//                v = VariableFactory.createConstantVariable(currentScope, ce.getType().getName(), "", ce.getValue());
-//            }
-//
-//            if (e instanceof VariableExpression) {
-//                VariableExpression ve = (VariableExpression) e;
-//
-//                v = VariableFactory.createObjectVariable(currentScope, ve.getType().getName(), ve.getName());
-//            }
-//
-//            if (v == null) {
-//                v = VariableFactory.createObjectVariable(currentScope, "unknown", "don't know");
-//            }
-//
-//            arguments[i] = v;
-//        }
-//
-//        codeBuilder.createInstance(currentScope, s.getType().getName(),
-//                codeBuilder.createVariable(currentScope, s.getType().getName()), arguments);
+        System.out.println(" --> CONSTRUCTOR: " + s.getType());
 
+        super.visitConstructorCallExpression(s);
 
+        ArgumentListExpression args = (ArgumentListExpression) s.getArguments();
+
+        Variable[] arguments = convertArguments(args);
+
+        codeBuilder.createInstance(
+                currentScope, s.getType().getName(),
+                codeBuilder.createVariable(currentScope, s.getType().getName()),
+                arguments);
     }
 
     @Override
@@ -207,9 +182,70 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
         super.visitMethodCallExpression(s);
 
         ArgumentListExpression args = (ArgumentListExpression) s.getArguments();
+        Variable[] arguments = convertArguments(args);
 
+        String objectName = "noname";
+
+        if (s.getObjectExpression() instanceof VariableExpression) {
+            VariableExpression ve = (VariableExpression) s.getObjectExpression();
+            objectName = ve.getName();
+        } else if (s.getObjectExpression() instanceof ClassExpression) {
+            ClassExpression ce = (ClassExpression) s.getObjectExpression();
+            objectName = ce.getType().getName();
+        }
+
+        String returnValueName = "void";
+
+        boolean isVoid = false;
+
+        if (!isVoid) {
+            returnValueName = codeBuilder.createVariable(currentScope, "java.lang.Object");
+        }
+
+        codeBuilder.invokeMethod(currentScope, objectName, s.getMethod().getText(), isVoid,
+                returnValueName, arguments);
+
+    }
+
+    @Override
+    public void visitDeclarationExpression(DeclarationExpression s) {
+        System.out.println(" --> DECLARATION: " + s.getVariableExpression());
+        super.visitDeclarationExpression(s);
+        codeBuilder.createVariable(currentScope, s.getVariableExpression().getType().getName(), s.getVariableExpression().getName());
+
+        if (s.getRightExpression() instanceof ConstantExpression) {
+            ConstantExpression ce = (ConstantExpression) s.getRightExpression();
+            codeBuilder.assignConstant(currentScope, s.getVariableExpression().getName(), ce.getValue());
+        }
+    }
+
+    @Override
+    protected SourceUnit getSourceUnit() {
+        return sourceUnit;
+    }
+
+    @Override
+    public void visitBinaryExpression(BinaryExpression s) {
+
+        super.visitBinaryExpression(s);
+    }
+
+    /**
+     * @return the rootScope
+     */
+    public Scope getRootScope() {
+        return rootScope;
+    }
+
+    /**
+     * @param rootScope the rootScope to set
+     */
+    public void setRootScope(Scope rootScope) {
+        this.rootScope = rootScope;
+    }
+
+    private Variable[] convertArguments(ArgumentListExpression args) {
         Variable[] arguments = new Variable[args.getExpressions().size()];
-
         for (int i = 0; i < args.getExpressions().size(); i++) {
             Expression e = args.getExpression(i);
 
@@ -240,60 +276,6 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
 
             arguments[i] = v;
         }
-
-        String objectName = "noname";
-
-        if (s.getObjectExpression() instanceof VariableExpression) {
-            VariableExpression ve = (VariableExpression) s.getObjectExpression();
-            objectName = ve.getName();
-        } else if (s.getObjectExpression() instanceof ClassExpression) {
-            ClassExpression ce = (ClassExpression)s.getObjectExpression();
-            objectName = ce.getType().getName();
-        }
-
-        String returnValueName = "void";
-
-        boolean isVoid =false;
-
-        if (!isVoid) {
-            returnValueName = codeBuilder.createVariable(currentScope, "java.lang.Object");
-        }
-
-        codeBuilder.invokeMethod(currentScope, objectName, s.getMethod().getText(),isVoid,
-                returnValueName, arguments);
-
-    }
-
-    @Override
-    public void visitDeclarationExpression(DeclarationExpression s) {
-        System.out.println(" --> DECLARATION: " + s.getVariableExpression());
-        super.visitDeclarationExpression(s);
-        codeBuilder.createVariable(currentScope, s.getVariableExpression().getType().getName(), s.getVariableExpression().getName());
-    }
-
-    @Override
-    protected SourceUnit getSourceUnit() {
-        return sourceUnit;
-    }
-
-    @Override
-    public void visitBinaryExpression(BinaryExpression s) {
-//        System.out.println(" --> BINARY: " + s.getOperation());
-
-        super.visitBinaryExpression(s);
-    }
-
-    /**
-     * @return the rootScope
-     */
-    public Scope getRootScope() {
-        return rootScope;
-    }
-
-    /**
-     * @param rootScope the rootScope to set
-     */
-    public void setRootScope(Scope rootScope) {
-        this.rootScope = rootScope;
+        return arguments;
     }
 }

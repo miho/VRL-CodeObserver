@@ -22,6 +22,27 @@ public interface Invocation {
     public boolean isVoid();
 }
 
+
+
+
+class ScopeInvocation extends InvocationImpl {
+    
+    private Scope scope;
+
+    public ScopeInvocation(Scope s) {
+        super("","scope",false,true, "", new Variable[0]);
+        this.scope = s;
+    }
+
+    /**
+     * @return the scope
+     */
+    public Scope getScope() {
+        return scope;
+    }
+    
+}
+
 class InvocationImpl implements Invocation {
 
     private String varName;
@@ -69,6 +90,7 @@ class InvocationImpl implements Invocation {
         return constructor;
     }
 
+    @Override
     public boolean isVoid() {
         return Void;
     }
@@ -76,7 +98,15 @@ class InvocationImpl implements Invocation {
     
     @Override
     public String toString() {
-        String result = "[ varName=" + varName + ", mName="+methodName + ", retValName=" + returnValueName + ", args=[";
+        
+        String result = "[ ";
+        
+        if (this instanceof ScopeInvocation) {
+            ScopeInvocation scopeInvocation = (ScopeInvocation) this;
+            result+="scopeType: " + scopeInvocation.getScope().getType() + ", ";
+        }
+        
+        result+="constructor=" + constructor + ", varName=" + varName + ", mName="+methodName + ", retValName=" + returnValueName + ", args=[";
                 
         for (Variable a : arguments) {
             result+=a + ", ";

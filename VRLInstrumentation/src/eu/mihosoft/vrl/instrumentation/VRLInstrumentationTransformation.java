@@ -4,6 +4,8 @@
  */
 package eu.mihosoft.vrl.instrumentation;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.codehaus.groovy.transform.ASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
 import org.codehaus.groovy.control.SourceUnit;
@@ -57,9 +59,17 @@ public class VRLInstrumentationTransformation implements ASTTransformation {
 class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
 
     private final SourceUnit unit;
+    private int blockDepth;
 
     public MethodCallExpressionTransformer(final SourceUnit unit) {
         this.unit = unit;
+    }
+
+    @Override
+    public void visitBlockStatement(BlockStatement bs) {
+        blockDepth++;
+        super.visitBlockStatement(bs);
+        blockDepth--;
     }
 
     @Override
@@ -89,7 +99,6 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
                 }
             } // end if is blockStatement
         }
-
 
         // we ignore other expressions as we only want to transform/instrument
         // method calls
@@ -134,12 +143,19 @@ class MethodCallExpressionTransformer extends ClassCodeExpressionTransformer {
         // if both are equal, static method call detected
         boolean staticCall = typeName.equals(objName);
 
+
+
+
         // create a new argument list with object the method belongs to
         // as first parameter and the method name as second parameter
-        ArgumentListExpression finalArgs = new ArgumentListExpression(
-                new ConstantExpression(staticCall),
-                methodCall.getObjectExpression(),
-                new ConstantExpression(methodCall.getMethod().getText()));
+        List<Expression> finalArgExpressions = new ArrayList<>();
+
+        finalArgExpressions.add(new ConstantExpression(blockDepth));
+        finalArgExpressions.add(new ConstantExpression(staticCall));
+        finalArgExpressions.add(methodCall.getObjectExpression());
+        finalArgExpressions.add(new ConstantExpression(methodCall.getMethod().getText()));
+
+        ArgumentListExpression finalArgs = new ArgumentListExpression(finalArgExpressions);
 
 
         // add original method args to argument list of the instrumentation

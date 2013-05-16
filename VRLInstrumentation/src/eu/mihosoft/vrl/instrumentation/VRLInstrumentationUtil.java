@@ -57,16 +57,15 @@ public class VRLInstrumentationUtil {
      *
      * @param staticCall defines whether method call is a static method call
      * @param scopeId position in scope
-     * @param controlFlowId position in controlflow
      * @param o instance the method belongs to
      * @param mName method name
      * @param args method arguments
      * @return return value of the method that shall be instrumented
      * @throws Throwable
      */
-    public static Object __instrumentCode(boolean staticCall, int scopeId, int controlFlowId, Object o, String mName, Object[] args) throws Throwable {
+    public static Object __instrumentCode(int scopeId, boolean staticCall, Object o, String mName, Object[] args) throws Throwable {
 
-        System.out.println(" --> calling " + mName + "(...): scope=" + scopeId + ", controflow=" + controlFlowId);
+        System.out.println(" --> calling " + mName + "(...): scope=" + scopeId);
 
         Object result = null;
 
