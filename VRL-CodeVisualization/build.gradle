@@ -6,7 +6,7 @@ repositories {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.5'
+    gradleVersion = '1.6'
 }
 
 String javaVersion = System.getProperty("java.version")
@@ -26,11 +26,7 @@ println(">> using jdk " + javaVersion)
 
 dependencies {
     compile project(":VRL-Instrumentation")
-}
-
-subprojects {
-    // we want to skip task run for all subprojects
-    task run  {println "skipping task run for: " + project }
+    compile project(":VWorkflows-FX")
 }
 
 sourceSets {
@@ -58,3 +54,9 @@ javafx {
 jfxDeploy {
     packaging = "image"
 }
+
+//subprojects {
+//    // we want to skip task run for all subprojects
+//    
+//    task run(overwrite: true) {println "skipping task run for: " + project }
+//}
