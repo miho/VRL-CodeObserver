@@ -20,6 +20,7 @@ public interface Invocation extends CodeEntity{
     public List<Variable> getArguments();
     public boolean isConstructor();
     public boolean isVoid();
+    public boolean isScope();
 }
 
 
@@ -39,6 +40,11 @@ class ScopeInvocation extends InvocationImpl {
      */
     public Scope getScope() {
         return scope;
+    }
+    
+    @Override
+    public boolean isScope() {
+        return true;
     }
     
 }
@@ -121,6 +127,7 @@ class InvocationImpl implements Invocation {
     /**
      * @return the id
      */
+    @Override
     public String getId() {
         return id;
     }
@@ -128,7 +135,13 @@ class InvocationImpl implements Invocation {
     /**
      * @param id the id to set
      */
+    @Override
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Override
+    public boolean isScope() {
+        return false;
     }
 }
