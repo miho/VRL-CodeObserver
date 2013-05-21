@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public interface Invocation {
+public interface Invocation extends CodeEntity{
 
     public String getVarName();
     public String getMethodName();
@@ -30,7 +30,7 @@ class ScopeInvocation extends InvocationImpl {
     private Scope scope;
 
     public ScopeInvocation(Scope s) {
-        super("","scope",false,true, "", new Variable[0]);
+        super("","","scope",false,true, "", new Variable[0]);
         this.scope = s;
     }
 
@@ -44,7 +44,7 @@ class ScopeInvocation extends InvocationImpl {
 }
 
 class InvocationImpl implements Invocation {
-
+    private String id;
     private String varName;
     private String methodName;
     private String returnValueName;
@@ -53,9 +53,10 @@ class InvocationImpl implements Invocation {
     private boolean Void;
 
     public InvocationImpl(
+            String id,
             String varName, String methodName,
             boolean constructor, boolean isVoid, String retValName, Variable... args) {
-
+        this.id = id;
         this.varName = varName;
         this.methodName = methodName;
         this.constructor = constructor;
@@ -115,5 +116,19 @@ class InvocationImpl implements Invocation {
         result += "]";
         
         return result;
+    }
+
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
     }
 }

@@ -13,13 +13,14 @@ import java.util.Stack;
 public class VisualCodeBuilder {
 
     private Stack<String> variables = new Stack<>();
+    private IdRequest idRequest;
 
     public String popVariable() {
         return variables.pop();
     }
 
-    public Scope createScope(Scope parent, ScopeType type, Object... args) {
-        Scope scope = new ScopeImpl(parent, type, args);
+    public Scope createScope(Scope parent, ScopeType type, String name, Object... args) {
+        Scope scope = new ScopeImpl(idRequest.request(), parent, type, name, args);
         if (parent != null) {
             parent.getControlFlow().callScope(scope);
         }
@@ -41,13 +42,18 @@ public class VisualCodeBuilder {
     }
 
     public void createInstance(Scope scope, String typeName, String varName, Variable... args) {
-        scope.getControlFlow().createInstance(typeName, varName, args);
+
+        String id = idRequest.request();
+
+        scope.getControlFlow().createInstance(id, typeName, varName, args);
 
         variables.push(varName);
     }
 
     public void invokeMethod(Scope scope, String varName, String mName, boolean isVoid, String retValName, Variable... args) {
-        scope.getControlFlow().callMethod(varName, mName, isVoid, retValName, args);
+        String id = idRequest.request();
+
+        scope.getControlFlow().callMethod(id, varName, mName, isVoid, retValName, args);
     }
 
     public void assignVariable(Scope scope, String varNameDest, String varNameSrc) {
@@ -56,5 +62,9 @@ public class VisualCodeBuilder {
 
     public void assignConstant(Scope scope, String varName, Object constant) {
         scope.assignConstant(varName, constant);
+    }
+
+    void setIdRequest(IdRequest idRequest) {
+        this.idRequest = idRequest;
     }
 }
