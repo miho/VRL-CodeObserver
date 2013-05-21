@@ -1,4 +1,5 @@
-apply from: 'http://dl.bintray.com/content/shemnon/javafx-gradle/javafx.plugin'
+//apply from: 'http://dl.bintray.com/content/shemnon/javafx-gradle/javafx.plugin'
+apply from: 'lib/gradle/javafx.plugin'
 
 repositories {
     mavenCentral()
