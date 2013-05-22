@@ -21,7 +21,7 @@ public class VisualCodeBuilder {
 
     public Scope createScope(Scope parent, ScopeType type, String name, Object... args) {
         Scope scope = new ScopeImpl(idRequest.request(), parent, type, name, args);
-        if (parent != null) {
+        if (parent != null && parent.getType() != ScopeType.CLASS && parent.getType() != ScopeType.NONE) {
             parent.getControlFlow().callScope(scope);
         }
         return scope;

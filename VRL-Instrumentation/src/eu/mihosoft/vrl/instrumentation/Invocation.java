@@ -26,11 +26,11 @@ public interface Invocation extends CodeEntity{
 
 
 
-class ScopeInvocation extends InvocationImpl {
+class ScopeInvocationImpl extends InvocationImpl implements ScopeInvocation {
     
     private Scope scope;
 
-    public ScopeInvocation(Scope s) {
+    public ScopeInvocationImpl(Scope s) {
         super("","","scope",false,true, "", new Variable[0]);
         this.scope = s;
     }
@@ -38,6 +38,7 @@ class ScopeInvocation extends InvocationImpl {
     /**
      * @return the scope
      */
+    @Override
     public Scope getScope() {
         return scope;
     }
@@ -108,8 +109,8 @@ class InvocationImpl implements Invocation {
         
         String result = "[ ";
         
-        if (this instanceof ScopeInvocation) {
-            ScopeInvocation scopeInvocation = (ScopeInvocation) this;
+        if (this instanceof ScopeInvocationImpl) {
+            ScopeInvocationImpl scopeInvocation = (ScopeInvocationImpl) this;
             result+="scopeType: " + scopeInvocation.getScope().getType() + ", ";
         }
         

@@ -35,7 +35,7 @@ class ControlFlowImpl implements ControlFlow{
     
     @Override
     public void callScope(Scope scope) {
-        getInvocations().add(new ScopeInvocation(scope));
+        getInvocations().add(new ScopeInvocationImpl(scope));
     }
     
     @Override
