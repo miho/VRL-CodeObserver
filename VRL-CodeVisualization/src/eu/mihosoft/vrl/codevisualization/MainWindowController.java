@@ -6,6 +6,8 @@ package eu.mihosoft.vrl.codevisualization;
 
 import eu.mihosoft.vrl.instrumentation.Invocation;
 import eu.mihosoft.vrl.instrumentation.Scope;
+import eu.mihosoft.vrl.instrumentation.ScopeInvocation;
+import eu.mihosoft.vrl.instrumentation.ScopeType;
 import eu.mihosoft.vrl.instrumentation.UIBinding;
 import eu.mihosoft.vrl.workflow.FlowFactory;
 import eu.mihosoft.vrl.workflow.VFlow;
@@ -205,7 +207,9 @@ public class MainWindowController implements Initializable {
 
     }
 
-    public void scopeToFlow(Scope scope, VFlow parent) {
+    public VFlow scopeToFlow(Scope scope, VFlow parent) {
+
+        boolean isClassOrScript = scope.getType() == ScopeType.CLASS || scope.getType() == ScopeType.NONE;
 
         VFlow result = parent.newSubFlow();
 
@@ -216,32 +220,44 @@ public class MainWindowController implements Initializable {
 
         result.getModel().setTitle(title);
 
-        System.out.println("Title: " + title);
-        
-        
+        System.out.println("Title: " + title + ", " + scope.getType());
+
         VNode prevNode = null;
-        
 
         for (Invocation i : scope.getControlFlow().getInvocations()) {
-            
-            VNode n = result.newNode();
+
+            VNode n;
+
+            if (i.isScope() && !isClassOrScript) {
+
+                ScopeInvocation sI = (ScopeInvocation) i;
+                n = scopeToFlow(sI.getScope(), result).getModel();
+            } else {
+                n = result.newNode();
+                String mTitle = "" + i.getVarName() + "." + i.getMethodName() + "(): " + i.getId();
+                n.setTitle(mTitle);
+            }
+
             n.setInput(true, "control");
             n.setOutput(true, "control");
-            
-            if (prevNode!=null) {
+
+            if (prevNode != null) {
                 result.connect(prevNode, n, "control");
             }
-            
-            String mTitle = "" + i.getVarName() + "." + i.getMethodName() + "(): " + i.getId();
-            n.setTitle(mTitle);
+
+
             n.setWidth(400);
             n.setHeight(100);
-            
+
             prevNode = n;
         }
 
-        for (Scope s : scope.getScopes()) {
-            scopeToFlow(s, result);
+        if (isClassOrScript) {
+            for (Scope s : scope.getScopes()) {
+                scopeToFlow(s, result);
+            }
         }
+
+        return result;
     }
 }
