@@ -9,6 +9,8 @@ import eu.mihosoft.vrl.instrumentation.Scope;
 import eu.mihosoft.vrl.instrumentation.ScopeInvocation;
 import eu.mihosoft.vrl.instrumentation.ScopeType;
 import eu.mihosoft.vrl.instrumentation.UIBinding;
+import eu.mihosoft.vrl.worflow.layout.Layout;
+import eu.mihosoft.vrl.worflow.layout.LayoutFactory;
 import eu.mihosoft.vrl.workflow.FlowFactory;
 import eu.mihosoft.vrl.workflow.VFlow;
 import eu.mihosoft.vrl.workflow.VNode;
@@ -203,6 +205,9 @@ public class MainWindowController implements Initializable {
             }
         }
 
+        Layout layout = LayoutFactory.newDefaultLayout();
+        layout.doLayout(flow);
+
         flow.setSkinFactories(new FXSkinFactory(rootPane));
 
     }
@@ -215,8 +220,13 @@ public class MainWindowController implements Initializable {
 
         String title = "" + scope.getType() + " " + scope.getName() + "(): " + scope.getId();
 
-        result.getModel().setWidth(400);
-        result.getModel().setHeight(300);
+        if (isClassOrScript) {
+            result.getModel().setWidth(400);
+            result.getModel().setHeight(800);
+        } else {
+            result.getModel().setWidth(400);
+            result.getModel().setHeight(300);
+        }
 
         result.getModel().setTitle(title);
 
