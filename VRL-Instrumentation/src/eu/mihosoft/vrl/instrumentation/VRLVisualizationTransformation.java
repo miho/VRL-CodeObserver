@@ -33,6 +33,7 @@ import org.codehaus.groovy.ast.stmt.ForStatement;
 import org.codehaus.groovy.ast.stmt.IfStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.ast.stmt.WhileStatement;
+import org.codehaus.groovy.control.Janitor;
 import org.codehaus.groovy.transform.StaticTypesTransformation;
 
 /**
@@ -135,16 +136,21 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
         super.visitClass(s);
 
         currentScope = currentScope.getParent();
+        
+        currentScope.setCode(getCode(s));
     }
 
     @Override
     public void visitMethod(MethodNode s) {
 
         currentScope = codeBuilder.createScope(currentScope, ScopeType.METHOD, s.getName(), new Object[0]);
+        currentScope.setCode(getCode(s));
 
         super.visitMethod(s);
 
         currentScope = currentScope.getParent();
+        
+        currentScope.setCode(getCode(s));
     }
 
 //    @Override
@@ -157,9 +163,11 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
     public void visitForLoop(ForStatement s) {
         System.out.println(" --> FOR-LOOP: " + s.getVariable());
         currentScope = codeBuilder.createScope(currentScope, ScopeType.FOR, "for", new Object[0]);
+//        currentScope.setCode(sourceUnit.getSource().getReader().);
         super.visitForLoop(s);
         currentScope = currentScope.getParent();
 
+        currentScope.setCode(getCode(s));
     }
 
     @Override
@@ -168,6 +176,8 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
         currentScope = codeBuilder.createScope(currentScope, ScopeType.WHILE, "while", new Object[0]);
         super.visitWhileLoop(s);
         currentScope = currentScope.getParent();
+        
+        currentScope.setCode(getCode(s));
     }
 
     @Override
@@ -193,6 +203,8 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
         }
 
         currentScope = currentScope.getParent();
+        
+        currentScope.setCode(getCode(ifElse));
 
     }
 
@@ -210,6 +222,11 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
                 currentScope, s.getType().getName(),
                 codeBuilder.createVariable(currentScope, s.getType().getName()),
                 arguments);
+    }
+    
+    private String getCode(ASTNode n ) {
+        String code = sourceUnit.getSample(n.getLineNumber(), n.getColumnNumber(), null);
+        return code;
     }
 
     @Override
@@ -252,7 +269,7 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
 
         if (!isIdCall) {
             codeBuilder.invokeMethod(currentScope, objectName, s.getMethod().getText(), isVoid,
-                    returnValueName, arguments);
+                    returnValueName, arguments).setCode(getCode(s));
         }
 
     }

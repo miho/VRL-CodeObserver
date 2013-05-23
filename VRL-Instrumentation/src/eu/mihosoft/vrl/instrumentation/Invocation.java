@@ -24,8 +24,6 @@ public interface Invocation extends CodeEntity{
 }
 
 
-
-
 class ScopeInvocationImpl extends InvocationImpl implements ScopeInvocation {
     
     private Scope scope;
@@ -58,6 +56,7 @@ class InvocationImpl implements Invocation {
     private List<Variable> arguments = new ArrayList<>();
     private boolean constructor;
     private boolean Void;
+    private String code;
 
     public InvocationImpl(
             String id,
@@ -144,5 +143,21 @@ class InvocationImpl implements Invocation {
     @Override
     public boolean isScope() {
         return false;
+    }
+
+    /**
+     * @return the code
+     */
+    @Override
+    public String getCode() {
+        return code;
+    }
+
+    /**
+     * @param code the code to set
+     */
+    @Override
+    public void setCode(String code) {
+        this.code = code;
     }
 }

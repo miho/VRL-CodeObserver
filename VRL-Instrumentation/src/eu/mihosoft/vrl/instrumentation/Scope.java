@@ -50,6 +50,7 @@ class ScopeImpl implements Scope {
     Map<String, Variable> variables = new HashMap<>();
     ControlFlow controlFlow;
     private List<Scope> scopes = new ArrayList<>();
+    private String code;
 
     public ScopeImpl(String id, Scope parent, ScopeType type, String name, Object[] scopeArgs) {
         this.id = id;
@@ -198,5 +199,19 @@ class ScopeImpl implements Scope {
      */
     public void setId(String id) {
         this.id = id;
+    }
+
+    /**
+     * @return the code
+     */
+    public String getCode() {
+        return code;
+    }
+
+    /**
+     * @param code the code to set
+     */
+    public void setCode(String code) {
+        this.code = code;
     }
 }

@@ -50,10 +50,10 @@ public class VisualCodeBuilder {
         variables.push(varName);
     }
 
-    public void invokeMethod(Scope scope, String varName, String mName, boolean isVoid, String retValName, Variable... args) {
+    public Invocation invokeMethod(Scope scope, String varName, String mName, boolean isVoid, String retValName, Variable... args) {
         String id = idRequest.request();
 
-        scope.getControlFlow().callMethod(id, varName, mName, isVoid, retValName, args);
+        return scope.getControlFlow().callMethod(id, varName, mName, isVoid, retValName, args);
     }
 
     public void assignVariable(Scope scope, String varNameDest, String varNameSrc) {

@@ -8,13 +8,12 @@ package eu.mihosoft.vrl.instrumentation;
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public interface ScopeInvocation {
+public interface ScopeInvocation extends Invocation{
 
     /**
      * @return the scope
      */
     Scope getScope();
 
-    boolean isScope();
     
 }
