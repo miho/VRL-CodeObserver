@@ -258,6 +258,8 @@ public class MainWindowController implements Initializable {
 
             n.setWidth(400);
             n.setHeight(100);
+            
+            System.out.println("Node: " + i.getCode());
 
             prevNode = n;
         }
