@@ -1,2 +1,2 @@
-include "VRLInstrumentation"
-project(':VRLInstrumentation').projectDir = new File(settingsDir, '../VRLInstrumentation')
+include "VRL-Instrumentation"
+project(':VRL-Instrumentation').projectDir = new File(settingsDir, '../VRL-Instrumentation')
