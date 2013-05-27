@@ -28,6 +28,7 @@ import org.codehaus.groovy.ast.expr.DeclarationExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.PropertyExpression;
+import org.codehaus.groovy.ast.expr.StaticMethodCallExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.EmptyStatement;
 import org.codehaus.groovy.ast.stmt.ForStatement;
@@ -35,6 +36,7 @@ import org.codehaus.groovy.ast.stmt.IfStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.control.Janitor;
+import org.codehaus.groovy.runtime.callsite.StaticMetaClassSite;
 import org.codehaus.groovy.transform.StaticTypesTransformation;
 
 /**
@@ -87,11 +89,11 @@ public class VRLVisualizationTransformation implements ASTTransformation {
             }
         }
 
-        UIBinding.scopes = scopes;
+        UIBinding.scopes.putAll(scopes);
     }
 }
 
-class VGroovyCodeVisitor extends ClassCodeVisitorSupport {
+class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
 
     private SourceUnit sourceUnit;
     private VisualCodeBuilder codeBuilder;
@@ -555,10 +557,29 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
         }
 
         if (!isIdCall) {
+            System.out.println("ID-CALL: ");
             codeBuilder.invokeMethod(currentScope, objectName, s.getMethod().getText(), isVoid,
                     returnValueName, arguments).setCode(getCode(s));
         }
+    }
+    
+    @Override
+    public void visitStaticMethodCallExpression(StaticMethodCallExpression s) {
+        super.visitStaticMethodCallExpression(s);
+        
+        ArgumentListExpression args = (ArgumentListExpression) s.getArguments();
+        Variable[] arguments = convertArguments(args);
+        
+        String returnValueName = "void";
+        
+        boolean isVoid = false;
 
+        if (!isVoid) {
+            returnValueName = codeBuilder.createVariable(currentScope, "java.lang.Object");
+        }
+        
+        codeBuilder.invokeMethod(currentScope, s.getType().getName(), s.getText(), isVoid,
+                    returnValueName, arguments).setCode(getCode(s));
     }
 
     @Override
