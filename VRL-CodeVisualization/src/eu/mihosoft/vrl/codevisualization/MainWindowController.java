@@ -147,7 +147,6 @@ public class MainWindowController implements Initializable {
 
     void loadTextFile(File f) {
 
-
         try {
             if (f == null) {
                 FileChooser.ExtensionFilter mdFilter =
@@ -190,12 +189,15 @@ public class MainWindowController implements Initializable {
             System.err.println("UI NOT READY");
             return;
         }
+        
+        UIBinding.scopes.clear();
 
         GroovyClassLoader gcl = new GroovyClassLoader();
         gcl.parseClass(editor.getText());
 
         System.out.println("UPDATE UI");
 
+        
         flow.clear();
             
         flow.setSkinFactories();
@@ -231,7 +233,7 @@ public class MainWindowController implements Initializable {
         String title = "" + scope.getType() + " " + scope.getName() + "(): " + scope.getId();
 
         if (isClassOrScript) {
-            result.getModel().setWidth(400);
+            result.getModel().setWidth(550);
             result.getModel().setHeight(800);
             result.setVisible(true);
         } else {
