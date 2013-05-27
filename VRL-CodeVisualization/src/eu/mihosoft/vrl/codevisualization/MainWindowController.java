@@ -104,6 +104,7 @@ public class MainWindowController implements Initializable {
     @FXML
     public void onSaveAction(ActionEvent e) {
         saveDocument(false);
+        updateView();
     }
 
     private void saveDocument(boolean askForLocationIfAlreadyOpened) {
@@ -184,15 +185,24 @@ public class MainWindowController implements Initializable {
     }
 
     private void updateView() {
+        
+        if (rootPane==null) {
+            System.err.println("UI NOT READY");
+            return;
+        }
 
         GroovyClassLoader gcl = new GroovyClassLoader();
         gcl.parseClass(editor.getText());
 
-        flow.getModel().setVisible(true);
-
         System.out.println("UPDATE UI");
 
-        rootPane.getChildren().clear();
+        flow.clear();
+            
+        flow.setSkinFactories();
+        
+        System.out.println("FLOW: " + flow.getSubControllers().size());
+        
+        flow.getModel().setVisible(true);
 
         if (UIBinding.scopes == null) {
             System.err.println("NO SCOPES");
@@ -204,11 +214,11 @@ public class MainWindowController implements Initializable {
                 scopeToFlow(s, flow);
             }
         }
+        
+        flow.setSkinFactories(new FXSkinFactory(rootPane));
 
         Layout layout = LayoutFactory.newDefaultLayout();
         layout.doLayout(flow);
-
-        flow.setSkinFactories(new FXSkinFactory(rootPane));
 
     }
 
@@ -223,6 +233,7 @@ public class MainWindowController implements Initializable {
         if (isClassOrScript) {
             result.getModel().setWidth(400);
             result.getModel().setHeight(800);
+            result.setVisible(true);
         } else {
             result.getModel().setWidth(400);
             result.getModel().setHeight(300);
