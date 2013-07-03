@@ -4,6 +4,9 @@
  */
 package eu.mihosoft.vrl.codevisualization;
 
+import eu.mihosoft.vrl.instrumentation.CodeEntity;
+import eu.mihosoft.vrl.instrumentation.DataFlow;
+import eu.mihosoft.vrl.instrumentation.DataRelation;
 import eu.mihosoft.vrl.instrumentation.Invocation;
 import eu.mihosoft.vrl.instrumentation.Scope;
 import eu.mihosoft.vrl.instrumentation.ScopeInvocation;
@@ -12,6 +15,7 @@ import eu.mihosoft.vrl.instrumentation.UIBinding;
 import eu.mihosoft.vrl.instrumentation.Variable;
 import eu.mihosoft.vrl.worflow.layout.Layout;
 import eu.mihosoft.vrl.worflow.layout.LayoutFactory;
+import eu.mihosoft.vrl.workflow.Connector;
 import eu.mihosoft.vrl.workflow.FlowFactory;
 import eu.mihosoft.vrl.workflow.VFlow;
 import eu.mihosoft.vrl.workflow.VNode;
@@ -26,7 +30,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,6 +60,7 @@ public class MainWindowController implements Initializable {
     Pane view;
     private Pane rootPane;
     private VFlow flow;
+    private Map<CodeEntity, VNode> invocationNodes = new HashMap<>();
 
     /**
      * Initializes the controller class.
@@ -230,11 +237,61 @@ public class MainWindowController implements Initializable {
 
     }
 
+    public void dataFlowToFlow(Scope scope, VFlow parent) {
+
+        DataFlow dataflow = scope.getDataFlow();
+        dataflow.create(scope.getControlFlow());
+
+        for (Invocation i : scope.getControlFlow().getInvocations()) {
+
+//            Variable retValue = scope.getVariable(i.getReturnValueName());
+
+            List<DataRelation> relations = dataflow.getRelationsForReceiver(i);
+            
+            System.out.println("relations: " + relations.size());
+
+            for (DataRelation dataRelation : relations) {
+                
+                
+                VNode sender = invocationNodes.get(dataRelation.getSender());
+                VNode receiver = invocationNodes.get(dataRelation.getReceiver());
+                
+                System.out.println("SENDER: " + sender.getId() + ", receiver: " + receiver.getId());
+                
+                Connector senderConnector = sender.getConnector("4");
+
+                String retValueName =
+                        dataRelation.getSender().getReturnValueName();
+                
+//                 parent.connect(
+//                                senderConnector, receiver.getConnector(""));
+
+                int inputIndex = 0;
+
+                for (Variable var : dataRelation.getReceiver().getArguments()) {
+                    System.out.println("var: " + var);
+                    if (var.getName().equals(retValueName)) {
+                        Connector receiverConnector =
+                                receiver.getConnector("3");
+
+                        parent.connect(
+                                senderConnector, receiverConnector);
+
+                        System.out.println( inputIndex + "connect: " + senderConnector.getType()+":"+senderConnector.isOutput()+ " -> " + receiverConnector.getType()+ ":" + receiverConnector.isInput());
+                    }
+                    inputIndex++;
+                }
+            }
+        }
+    }
+
     public VFlow scopeToFlow(Scope scope, VFlow parent) {
 
         boolean isClassOrScript = scope.getType() == ScopeType.CLASS || scope.getType() == ScopeType.NONE;
 
         VFlow result = parent.newSubFlow();
+
+        invocationNodes.put(scope, result.getModel());
 
         String title = "" + scope.getType() + " " + scope.getName() + "(): " + scope.getId();
 
@@ -261,28 +318,28 @@ public class MainWindowController implements Initializable {
 
                 ScopeInvocation sI = (ScopeInvocation) i;
                 n = scopeToFlow(sI.getScope(), result).getModel();
+                
             } else {
                 n = result.newNode();
                 String mTitle = "" + i.getVarName() + "." + i.getMethodName() + "(): " + i.getId();
                 n.setTitle(mTitle);
+
+                invocationNodes.put(i, n);
             }
 
             n.setMainInput(n.addInput("control"));
             n.setMainOutput(n.addOutput("control"));
 
+            if (prevNode != null) {
+                result.connect(prevNode, n, "control");
+            }
 
             for (Variable v : i.getArguments()) {
                 n.addInput("data");
             }
 
-
-
             if (!i.isVoid()) {
                 n.addOutput("data");
-            }
-
-            if (prevNode != null) {
-                result.connect(prevNode, n, "control");
             }
 
             n.setWidth(400);
@@ -298,6 +355,8 @@ public class MainWindowController implements Initializable {
                 scopeToFlow(s, result);
             }
         }
+        
+        dataFlowToFlow(scope, result);
 
         return result;
     }
