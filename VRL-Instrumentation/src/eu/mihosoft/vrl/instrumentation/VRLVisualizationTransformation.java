@@ -38,6 +38,7 @@ import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.control.Janitor;
 import org.codehaus.groovy.runtime.callsite.StaticMetaClassSite;
 import org.codehaus.groovy.transform.StaticTypesTransformation;
+import org.codehaus.groovy.transform.stc.StaticTypesMarker;
 
 /**
  * Adds instrumentation to each method call. Use {@link VRLInstrumentation} to
@@ -59,11 +60,11 @@ public class VRLVisualizationTransformation implements ASTTransformation {
         Map<String, List<Scope>> scopes = new HashMap<>();
 
         VGroovyCodeVisitor visitor = new VGroovyCodeVisitor(sourceUnit, codeBuilder);
-        
+
         List<Scope> clsScopes = new ArrayList<>();
         scopes.put(sourceUnit.getName(), clsScopes);
         scopes.get(sourceUnit.getName()).add(visitor.getRootScope());
-        
+
 
         // apply transformation for each class in the specified source unit
         for (ClassNode clsNode : sourceUnit.getAST().getClasses()) {
@@ -75,10 +76,10 @@ public class VRLVisualizationTransformation implements ASTTransformation {
 //            }
 
             //ClassVisitor visitor = new ClassVisitor(sourceUnit, clsNode, codeBuilder);
-            
+
             visitor.visitClass(clsNode);
 //            clsNode.visitContents(visitor);
-            
+
             //scopes.get(clsNode.getName()).add(visitor.getRootScope());
 
         }
@@ -118,9 +119,6 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         this.rootScope = codeBuilder.createScope(null, ScopeType.NONE, sourceUnit.getName(), new Object[0]);
         this.currentScope = rootScope;
     }
-    
-    
-    
 
     @Override
     protected SourceUnit getSourceUnit() {
@@ -150,7 +148,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
     @Override
     public void visitClass(ClassNode s) {
-        
+
         System.out.println("CLASS: " + s.getName());
 
         currentScope = codeBuilder.createScope(currentScope, ScopeType.CLASS, s.getName(), new Object[0]);
@@ -161,7 +159,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
         currentScope.setCode(getCode(s));
 
-        
+
     }
 
     @Override
@@ -285,7 +283,15 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
         String returnValueName = "void";
 
-        boolean isVoid = false;
+        boolean isVoid = true;
+
+        MethodNode mTarget = (MethodNode) s.getNodeMetaData(StaticTypesMarker.DIRECT_METHOD_CALL_TARGET);
+
+        if (mTarget != null && mTarget.getReturnType() != null) {
+            isVoid = mTarget.getReturnType().getName().toLowerCase().equals("void");
+            System.out.println("TYPECHECKED!!!");
+        }
+
 
         if (!isVoid) {
             returnValueName = codeBuilder.createVariable(currentScope, "java.lang.Object");
@@ -562,24 +568,24 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
                     returnValueName, arguments).setCode(getCode(s));
         }
     }
-    
+
     @Override
     public void visitStaticMethodCallExpression(StaticMethodCallExpression s) {
         super.visitStaticMethodCallExpression(s);
-        
+
         ArgumentListExpression args = (ArgumentListExpression) s.getArguments();
         Variable[] arguments = convertArguments(args);
-        
+
         String returnValueName = "void";
-        
+
         boolean isVoid = false;
 
         if (!isVoid) {
             returnValueName = codeBuilder.createVariable(currentScope, "java.lang.Object");
         }
-        
+
         codeBuilder.invokeMethod(currentScope, s.getType().getName(), s.getText(), isVoid,
-                    returnValueName, arguments).setCode(getCode(s));
+                returnValueName, arguments).setCode(getCode(s));
     }
 
     @Override
