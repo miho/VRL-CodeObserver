@@ -184,12 +184,12 @@ public class MainWindowController implements Initializable {
     }
 
     private void updateView() {
-        
-        if (rootPane==null) {
+
+        if (rootPane == null) {
             System.err.println("UI NOT READY");
             return;
         }
-        
+
         UIBinding.scopes.clear();
 
         GroovyClassLoader gcl = new GroovyClassLoader();
@@ -197,13 +197,13 @@ public class MainWindowController implements Initializable {
 
         System.out.println("UPDATE UI");
 
-        
+
         flow.clear();
-            
+
         flow.setSkinFactories();
-        
+
         System.out.println("FLOW: " + flow.getSubControllers().size());
-        
+
         flow.getModel().setVisible(true);
 
         if (UIBinding.scopes == null) {
@@ -216,7 +216,7 @@ public class MainWindowController implements Initializable {
                 scopeToFlow(s, flow);
             }
         }
-        
+
         flow.setSkinFactories(new FXSkinFactory(rootPane));
 
         Layout layout = LayoutFactory.newDefaultLayout();
@@ -261,17 +261,16 @@ public class MainWindowController implements Initializable {
                 n.setTitle(mTitle);
             }
 
-            n.setInput(true, "control");
-            n.setOutput(true, "control");
+            n.setMainInput(n.addInput("control"));
+            n.setMainOutput(n.addOutput("control"));
 
             if (prevNode != null) {
                 result.connect(prevNode, n, "control");
             }
 
-
             n.setWidth(400);
             n.setHeight(100);
-            
+
             System.out.println("Node: " + i.getCode());
 
             prevNode = n;
