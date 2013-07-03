@@ -103,6 +103,9 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     private Invocation lastMethod;
     private Stack<String> vIdStack = new Stack<>();
     private IdGenerator generator = FlowFactory.newIdGenerator();
+    
+    private Map<MethodCallExpression,String> returnValuesOfMethods
+            = new HashMap<>();
 
     public VGroovyCodeVisitor(SourceUnit sourceUnit, VisualCodeBuilder codeBuilder) {
 
@@ -294,7 +297,8 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
 
         if (!isVoid) {
-            returnValueName = codeBuilder.createVariable(currentScope, "java.lang.Object");
+            returnValueName = codeBuilder.createVariable(currentScope, mTarget.getReturnType().getName());
+            returnValuesOfMethods.put(s, returnValueName);
         }
 
         if (!isIdCall) {
@@ -359,6 +363,11 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
                 PropertyExpression pe = (PropertyExpression) e;
 
                 v = VariableFactory.createObjectVariable(currentScope, "PROPERTYEXPR", "don't know");
+            }
+            
+            if (e instanceof MethodCallExpression) {
+                System.out.println("TYPE: " + e);
+                v = currentScope.getVariable(returnValuesOfMethods.get(e));
             }
 
             if (v == null) {

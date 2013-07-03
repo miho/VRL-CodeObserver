@@ -53,7 +53,9 @@ public class VisualCodeBuilder {
     public Invocation invokeMethod(Scope scope, String varName, String mName, boolean isVoid, String retValName, Variable... args) {
         String id = idRequest.request();
 
-        return scope.getControlFlow().callMethod(id, varName, mName, isVoid, retValName, args);
+        Invocation result =  scope.getControlFlow().callMethod(id, varName, mName, isVoid, retValName, args);
+        
+        return result;
     }
 
     public void assignVariable(Scope scope, String varNameDest, String varNameSrc) {
