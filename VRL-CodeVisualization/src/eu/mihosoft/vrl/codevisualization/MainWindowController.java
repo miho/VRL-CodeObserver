@@ -9,6 +9,7 @@ import eu.mihosoft.vrl.instrumentation.Scope;
 import eu.mihosoft.vrl.instrumentation.ScopeInvocation;
 import eu.mihosoft.vrl.instrumentation.ScopeType;
 import eu.mihosoft.vrl.instrumentation.UIBinding;
+import eu.mihosoft.vrl.instrumentation.Variable;
 import eu.mihosoft.vrl.worflow.layout.Layout;
 import eu.mihosoft.vrl.worflow.layout.LayoutFactory;
 import eu.mihosoft.vrl.workflow.FlowFactory;
@@ -35,6 +36,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooserBuilder;
 
@@ -217,7 +219,11 @@ public class MainWindowController implements Initializable {
             }
         }
 
-        flow.setSkinFactories(new FXSkinFactory(rootPane));
+        FXSkinFactory skinFactory = new FXSkinFactory(rootPane);
+
+        skinFactory.setConnectionFillColor("control", Color.YELLOW);
+
+        flow.setSkinFactories(skinFactory);
 
         Layout layout = LayoutFactory.newDefaultLayout();
         layout.doLayout(flow);
@@ -263,6 +269,17 @@ public class MainWindowController implements Initializable {
 
             n.setMainInput(n.addInput("control"));
             n.setMainOutput(n.addOutput("control"));
+
+
+            for (Variable v : i.getArguments()) {
+                n.addInput("data");
+            }
+
+
+
+            if (!i.isVoid()) {
+                n.addOutput("data");
+            }
 
             if (prevNode != null) {
                 result.connect(prevNode, n, "control");
