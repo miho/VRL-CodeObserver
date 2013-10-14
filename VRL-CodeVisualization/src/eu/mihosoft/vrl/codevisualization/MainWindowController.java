@@ -228,8 +228,6 @@ public class MainWindowController implements Initializable {
 
         FXSkinFactory skinFactory = new FXSkinFactory(rootPane);
 
-        skinFactory.setConnectionFillColor("control", Color.YELLOW);
-
         flow.setSkinFactories(skinFactory);
 
         Layout layout = LayoutFactory.newDefaultLayout();
