@@ -18,8 +18,12 @@ dependencies {
     groovy "org.codehaus.groovy:groovy:2.1.5"
     
     groovy "com.google.guava:guava:14.0"
+    
+    compile "org.antlr:stringtemplate:4.0.2"
 
     compile "eu.mihosoft.vrl.workflow:vworkflows-core:0.1-r1-SNAPSHOT"
+    
+    
     
 }
 
@@ -38,5 +42,6 @@ sourceSets {
     }
 }
 
-mainClassName = "eu.mihosoft.vrl.instrumentation.GroovyAST01"
+//mainClassName = "eu.mihosoft.vrl.instrumentation.GroovyAST01"
+mainClass = "eu.mihosoft.vrl.instrumentation.Scope2Code"
 
