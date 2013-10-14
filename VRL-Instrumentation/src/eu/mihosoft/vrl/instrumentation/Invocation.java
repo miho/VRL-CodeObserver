@@ -50,12 +50,12 @@ class ScopeInvocationImpl extends InvocationImpl implements ScopeInvocation {
 
 class InvocationImpl implements Invocation {
     private String id;
-    private String varName;
-    private String methodName;
-    private String returnValueName;
-    private List<Variable> arguments = new ArrayList<>();
-    private boolean constructor;
-    private boolean Void;
+    private final String varName;
+    private final String methodName;
+    private final String returnValueName;
+    private final List<Variable> arguments = new ArrayList<>();
+    private final boolean constructor;
+    private final boolean Void;
     private String code;
 
     public InvocationImpl(
@@ -160,4 +160,5 @@ class InvocationImpl implements Invocation {
     public void setCode(String code) {
         this.code = code;
     }
+
 }

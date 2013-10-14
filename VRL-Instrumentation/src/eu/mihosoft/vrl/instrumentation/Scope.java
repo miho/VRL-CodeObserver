@@ -55,7 +55,7 @@ class ScopeImpl implements Scope {
     Map<String, Variable> variables = new HashMap<>();
     ControlFlow controlFlow;
     DataFlow dataFlow;
-    private List<Scope> scopes = new ArrayList<>();
+    private final List<Scope> scopes = new ArrayList<>();
     private String code;
 
     public ScopeImpl(String id, Scope parent, ScopeType type, String name, Object[] scopeArgs) {
@@ -190,6 +190,7 @@ class ScopeImpl implements Scope {
     /**
      * @return the name
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -197,6 +198,7 @@ class ScopeImpl implements Scope {
     /**
      * @return the id
      */
+    @Override
     public String getId() {
         return id;
     }
@@ -204,6 +206,7 @@ class ScopeImpl implements Scope {
     /**
      * @param id the id to set
      */
+    @Override
     public void setId(String id) {
         this.id = id;
     }
@@ -211,6 +214,7 @@ class ScopeImpl implements Scope {
     /**
      * @return the code
      */
+    @Override
     public String getCode() {
         return code;
     }
@@ -218,6 +222,7 @@ class ScopeImpl implements Scope {
     /**
      * @param code the code to set
      */
+    @Override
     public void setCode(String code) {
         this.code = code;
     }
@@ -227,6 +232,7 @@ class ScopeImpl implements Scope {
         return dataFlow;
     }
     
+    @Override
     public void generateDataFlow() {
         
         System.out.println("DATAFLOW---------------------------------");

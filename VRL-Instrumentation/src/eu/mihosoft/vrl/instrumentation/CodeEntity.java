@@ -14,4 +14,5 @@ public interface CodeEntity {
     
     public void setCode(String code);
     public String getCode();
+    
 }
