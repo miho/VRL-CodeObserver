@@ -8,6 +8,10 @@ task wrapper(type: Wrapper) {
 
 repositories {
     mavenCentral()
+    
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
 }
 
 mainClassName = "eu.mihosoft.vrl.instrumentation.GroovyAST01"

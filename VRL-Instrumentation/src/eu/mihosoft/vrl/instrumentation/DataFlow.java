@@ -17,8 +17,6 @@ import java.util.Map;
  */
 public interface DataFlow {
 
-    public void createDataRelation(Invocation sender, Invocation receiver);
-
     public List<DataRelation> getRelations();
 
     public List<DataRelation> getRelationsForSender(Invocation invocation);
@@ -35,8 +33,7 @@ class DataFlowImpl implements DataFlow {
     ListMultimap<Invocation, DataRelation> relationsForSender = ArrayListMultimap.create();
     ListMultimap<Invocation, DataRelation> relationsForReceiver = ArrayListMultimap.create();
 
-    @Override
-    public void createDataRelation(Invocation sender, Invocation receiver) {
+    void createDataRelation(Invocation sender, Invocation receiver) {
         DataRelationImpl relation = new DataRelationImpl(sender, receiver);
 
         relations.add(relation);

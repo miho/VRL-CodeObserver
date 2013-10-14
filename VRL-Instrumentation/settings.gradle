@@ -1,2 +1,2 @@
-include "VWorkflows-Core"
-project(":VWorkflows-Core").projectDir = new File(settingsDir, "../../VWorkflows/VWorkflows-Core")
+//include "VWorkflows-Core"
+//project(":VWorkflows-Core").projectDir = new File(settingsDir, "../../VWorkflows/VWorkflows-Core")

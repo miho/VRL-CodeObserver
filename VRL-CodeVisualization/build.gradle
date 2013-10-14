@@ -3,6 +3,10 @@ apply from: 'lib/gradle/javafx.plugin'
 
 repositories {
     mavenCentral()
+    mavenLocal()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
 }
 
 task wrapper(type: Wrapper) {
@@ -26,7 +30,13 @@ println(">> using jdk " + javaVersion)
 
 dependencies {
     compile project(":VRL-Instrumentation")
-    compile project(":VWorkflows-FX")
+    //compile "org.jfxtras:jfxtras-labs-8.0:8.0-r1-SNAPSHOT"
+    
+    if (jdk==8) {
+        compile "eu.mihosoft.vrl.workflow-8.0:vworkflows-fx:0.1-r1-SNAPSHOT"
+    } else {
+        compile "eu.mihosoft.vrl.workflow:vworkflows-fx:0.1-r1-SNAPSHOT"
+    }
 }
 
 sourceSets {
@@ -55,8 +65,20 @@ jfxDeploy {
     packaging = "image"
 }
 
+run << {
+    System.exit(0) // we don't want to run subprojects
+}
+
 //subprojects {
 //    // we want to skip task run for all subprojects
 //    
-//    task run(overwrite: true) {println "skipping task run for: " + project }
+////   task run(overwrite: true) {println "skipping task run for: " + project }
+//    println("PRJ: " + project)
+////    run {actions = [];println "skipping task run for: " + project }
+//
+////    project.run{
+////        actions = [];
+////    }
+////    println(" --> " + runTask)
+//
 //}

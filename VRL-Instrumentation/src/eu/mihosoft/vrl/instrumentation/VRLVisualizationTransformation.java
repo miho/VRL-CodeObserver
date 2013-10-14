@@ -644,13 +644,14 @@ class ClassVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
             if (e instanceof ConstantExpression) {
                 ConstantExpression ce = (ConstantExpression) e;
 
+                // TODO WHY no name???
                 v = VariableFactory.createConstantVariable(currentScope, ce.getType().getName(), "", ce.getValue());
             }
 
             if (e instanceof VariableExpression) {
                 VariableExpression ve = (VariableExpression) e;
 
-                v = VariableFactory.createObjectVariable(currentScope, ve.getType().getName(), ve.getName());
+                v = currentScope.getVariable(ve.getName());
             }
 
             if (e instanceof PropertyExpression) {
