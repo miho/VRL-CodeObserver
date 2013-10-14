@@ -14,11 +14,12 @@ import java.util.Map;
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public interface Scope extends CodeEntity{
+public interface Scope extends CodeEntity {
 
     public Scope getParent();
 
     public ScopeType getType();
+
     public String getName();
 
     public Object[] getScopeArgs();
@@ -30,18 +31,22 @@ public interface Scope extends CodeEntity{
     public void createVariable(String typeName, String varName);
 
     public void assignConstant(String varName, Object constant);
-    
+
     public void assignVariable(String varNameDest, String varNameSrc);
 
     public ControlFlow getControlFlow();
 
     public List<Scope> getScopes();
-    
+
     public String createVariable(String typeName);
+
+    public DataFlow getDataFlow();
+    
+    public void generateDataFlow();
 }
 
 class ScopeImpl implements Scope {
-    
+
     private String id;
     Scope parent;
     ScopeType type;
@@ -49,6 +54,7 @@ class ScopeImpl implements Scope {
     Object[] scopeArgs;
     Map<String, Variable> variables = new HashMap<>();
     ControlFlow controlFlow;
+    DataFlow dataFlow;
     private List<Scope> scopes = new ArrayList<>();
     private String code;
 
@@ -62,6 +68,7 @@ class ScopeImpl implements Scope {
         this.name = name;
         this.scopeArgs = scopeArgs;
         this.controlFlow = new ControlFlowImpl();
+        this.dataFlow = new DataFlowImpl();
     }
 
     @Override
@@ -94,21 +101,21 @@ class ScopeImpl implements Scope {
     public void createVariable(String typeName, String varName) {
         variables.put(varName, new VariableImpl(this, typeName, varName, null, false));
     }
-    
+
     @Override
     public String createVariable(String typeName) {
         String varNamePrefix = "vrlInternalVar";
-        
+
         int counter = 0;
         String varName = varNamePrefix + counter;
-        
-        while(getVariable(varName)!=null) {
+
+        while (getVariable(varName) != null) {
             counter++;
             varName = varNamePrefix + counter;
         }
-        
+
         createVariable(typeName, varName);
-        
+
         return varName;
     }
 
@@ -119,12 +126,12 @@ class ScopeImpl implements Scope {
         if (var == null) {
             throw new IllegalArgumentException("Variable " + varName + " does not exist!");
         }
-        
+
         var.setValue(constant);
         var.setConstant(true);
-        
+
     }
-    
+
     @Override
     public void assignVariable(String varNameDest, String varNameSrc) {
         Variable varDest = getVariable(varNameDest);
@@ -133,12 +140,12 @@ class ScopeImpl implements Scope {
         if (varDest == null) {
             throw new IllegalArgumentException("Variable " + varNameDest + " does not exist!");
         }
-        
+
         if (varSrc == null) {
             throw new IllegalArgumentException("Variable " + varNameSrc + " does not exist!");
         }
 
-        System.out.println(">> assignment: " + varNameDest+"="+varNameSrc);
+        System.out.println(">> assignment: " + varNameDest + "=" + varNameSrc);
     }
 
     @Override
@@ -168,11 +175,11 @@ class ScopeImpl implements Scope {
         for (Variable v : variables.values()) {
             result += " --> " + v.toString() + "\n";
         }
-        
+
         result += "\n>> ControlFlow:\n" + controlFlow.toString();
-        
+
         result += "\n>> SubScopes:\n";
-        
+
         for (Scope s : scopes) {
             result += s.toString() + "\n";
         }
@@ -213,5 +220,34 @@ class ScopeImpl implements Scope {
      */
     public void setCode(String code) {
         this.code = code;
+    }
+
+    @Override
+    public DataFlow getDataFlow() {
+        return dataFlow;
+    }
+    
+    public void generateDataFlow() {
+        
+        System.out.println("DATAFLOW---------------------------------");
+        
+        for(Invocation i : controlFlow.getInvocations()) {
+//            System.out.println("invocation: " + i);
+            for(Variable v : i.getArguments()) {
+                System.out.println("--> varname: " + v.getName() + ", " + i);
+            }
+            
+            if (i instanceof ScopeInvocation) {
+                ((ScopeInvocation)i).getScope().generateDataFlow();
+            }
+        }
+        
+        boolean isClassOrScript = getType() == ScopeType.CLASS || getType() == ScopeType.NONE;
+        
+       if (isClassOrScript) {
+            for (Scope s : getScopes()) {
+                s.generateDataFlow();
+            }
+        }
     }
 }
