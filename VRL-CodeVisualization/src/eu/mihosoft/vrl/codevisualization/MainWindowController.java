@@ -261,13 +261,12 @@ public class MainWindowController implements Initializable {
                 n.setTitle(mTitle);
             }
 
-            n.setInput(true, "control");
-            n.setOutput(true, "control");
+            n.setMainInput(n.addInput("control"));
+            n.setMainOutput(n.addOutput("control"));
 
             if (prevNode != null) {
                 result.connect(prevNode, n, "control");
             }
-
 
             n.setWidth(400);
             n.setHeight(100);
