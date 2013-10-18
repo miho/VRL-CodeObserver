@@ -13,4 +13,5 @@ package eu.mihosoft.vrl.instrumentation;
  */
 public interface CodeRenderer <T extends CodeEntity> {
     public String render(T e);
+    public void render(T e, CodeBuilder cb);
 }

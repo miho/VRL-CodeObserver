@@ -27,25 +27,35 @@ public class VisualCodeBuilder {
         return scope;
     }
 
-    public void createVariable(Scope scope, String typeName, String varName) {
-        scope.createVariable(typeName, varName);
+    public void createVariable(Scope scope, Type type, String varName) {
+        scope.createVariable(type, varName);
 
         variables.push(varName);
     }
 
-    public String createVariable(Scope scope, String typeName) {
-        String name = scope.createVariable(typeName);
+    public String createVariable(Scope scope, Type type) {
+        String name = scope.createVariable(type);
 
         variables.push(name);
 
         return name;
     }
 
-    public void createInstance(Scope scope, String typeName, String varName, Variable... args) {
+    public void delcareMethod(Scope scope, Type returnType, String methodName, Parameter... params) {
+
+        if (scope.getType() != ScopeType.CLASS || scope.getType() != ScopeType.NONE) {
+            throw new IllegalArgumentException("Specified scopetype does not support method declaration: " + scope.getType());
+        }
+
+        scope.declareMethod(returnType, methodName, params);
+        
+    }
+
+    public void createInstance(Scope scope, Type type, String varName, Variable... args) {
 
         String id = idRequest.request();
 
-        scope.getControlFlow().createInstance(id, typeName, varName, args);
+        scope.getControlFlow().createInstance(id, type, varName, args);
 
         variables.push(varName);
     }
@@ -53,8 +63,8 @@ public class VisualCodeBuilder {
     public Invocation invokeMethod(Scope scope, String varName, String mName, boolean isVoid, String retValName, Variable... args) {
         String id = idRequest.request();
 
-        Invocation result =  scope.getControlFlow().callMethod(id, varName, mName, isVoid, retValName, args);
-        
+        Invocation result = scope.getControlFlow().callMethod(id, varName, mName, isVoid, retValName, args);
+
         return result;
     }
 

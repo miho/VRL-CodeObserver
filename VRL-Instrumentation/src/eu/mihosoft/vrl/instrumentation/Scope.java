@@ -28,7 +28,7 @@ public interface Scope extends CodeEntity {
 
     public Variable getVariable(String name);
 
-    public void createVariable(String typeName, String varName);
+    public void createVariable(Type type, String varName);
 
     public void assignConstant(String varName, Object constant);
 
@@ -38,11 +38,13 @@ public interface Scope extends CodeEntity {
 
     public List<Scope> getScopes();
 
-    public String createVariable(String typeName);
+    public String createVariable(Type type);
 
     public DataFlow getDataFlow();
     
     public void generateDataFlow();
+
+    public void declareMethod(Type returnType, String methodName, Parameter[] params);
 }
 
 class ScopeImpl implements Scope {
@@ -98,12 +100,12 @@ class ScopeImpl implements Scope {
     }
 
     @Override
-    public void createVariable(String typeName, String varName) {
-        variables.put(varName, new VariableImpl(this, typeName, varName, null, false));
+    public void createVariable(Type type, String varName) {
+        variables.put(varName, new VariableImpl(this, type, varName, null, false));
     }
 
     @Override
-    public String createVariable(String typeName) {
+    public String createVariable(Type type) {
         String varNamePrefix = "vrlInternalVar";
 
         int counter = 0;
@@ -114,7 +116,7 @@ class ScopeImpl implements Scope {
             varName = varNamePrefix + counter;
         }
 
-        createVariable(typeName, varName);
+        createVariable(type, varName);
 
         return varName;
     }

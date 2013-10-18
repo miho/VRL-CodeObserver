@@ -14,32 +14,30 @@ public interface Variable {
 
     public String getName();
 
-    public String getTypeName();
+    public Type getType();
 
     public Object getValue();
 
     public boolean isConstant();
 
     public Scope getScope();
-    
+
     public void setValue(Object value);
-    
-    public  void setConstant(boolean b);
+
+    public void setConstant(boolean b);
 }
-
-
 
 class VariableImpl implements Variable {
 
     private Scope scope;
-    private String typeName;
+    private Type type;
     private String varName;
     private Object value;
     private boolean constant;
 
-    public VariableImpl(Scope scope, String typeName, String varName, Object value, boolean constant) {
+    public VariableImpl(Scope scope, Type type, String varName, Object value, boolean constant) {
         this.scope = scope;
-        this.typeName = typeName;
+        this.type = type;
         this.varName = varName;
         this.value = value;
         this.constant = constant;
@@ -51,8 +49,8 @@ class VariableImpl implements Variable {
     }
 
     @Override
-    public String getTypeName() {
-        return typeName;
+    public Type getType() {
+        return type;
     }
 
     @Override
@@ -95,10 +93,10 @@ class VariableImpl implements Variable {
         hash = 83 * hash + Objects.hashCode(this.varName);
         return hash;
     }
-    
+
     @Override
     public String toString() {
-        return "[ const=" + constant + ", typeName=" + typeName + ", name=" + varName + ", val=" + value + " ]"; 
+        return "[ const=" + constant + ", type=" + type + ", name=" + varName + ", val=" + value + " ]";
     }
 
     @Override

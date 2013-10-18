@@ -10,11 +10,11 @@ package eu.mihosoft.vrl.instrumentation;
  */
 public class VariableFactory {
 
-    public static Variable createObjectVariable(Scope scope, String typeName, String varName) {
-        return new VariableImpl(scope, typeName, varName, null, false);
+    public static Variable createObjectVariable(Scope scope, Type type, String varName) {
+        return new VariableImpl(scope, type, varName, null, false);
     }
 
-    public static Variable createConstantVariable(Scope scope, String typeName, String varName, Object constant) {
-        return new VariableImpl(scope, typeName, varName, constant, true);
+    public static Variable createConstantVariable(Scope scope, Type type, String varName, Object constant) {
+        return new VariableImpl(scope, type, varName, constant, true);
     }
 }

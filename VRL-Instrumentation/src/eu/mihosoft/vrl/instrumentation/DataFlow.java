@@ -79,7 +79,7 @@ class DataFlowImpl implements DataFlow {
 
                 Invocation sender = senders.get(v.getName());
 
-                System.out.println(">> searching sender for " + v.getName() + " with type " + v.getTypeName());
+                System.out.println(">> searching sender for " + v.getName() + " with type " + v.getType());
                 
                 if (sender != null) {
                     System.out.println(

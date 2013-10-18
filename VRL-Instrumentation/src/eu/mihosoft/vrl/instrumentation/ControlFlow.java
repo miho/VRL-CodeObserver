@@ -13,7 +13,7 @@ import java.util.List;
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
 public interface ControlFlow {
-    public Invocation createInstance(String id, String className, String varName, Variable... args);
+    public Invocation createInstance(String id, Type type, String varName, Variable... args);
     public Invocation callMethod(String id, String varName, String mName, boolean isVoid, String retValueName, Variable... args);
 
     public ScopeInvocation callScope(Scope scope);
@@ -24,8 +24,8 @@ class ControlFlowImpl implements ControlFlow{
     private List<Invocation> invocations = new ArrayList<>();
 
     @Override
-    public Invocation createInstance(String id, String className, String varName, Variable... args) {
-        Invocation result = new InvocationImpl(id, className, "<init>", true, false, varName, args);
+    public Invocation createInstance(String id, Type type, String varName, Variable... args) {
+        Invocation result = new InvocationImpl(id, type.getFullClassName(), "<init>", true, false, varName, args);
         getInvocations().add(result);
         return result;
     }
