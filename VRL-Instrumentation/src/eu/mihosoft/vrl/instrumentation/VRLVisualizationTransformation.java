@@ -55,7 +55,7 @@ public class VRLVisualizationTransformation implements ASTTransformation {
         StaticTypesTransformation transformation = new StaticTypesTransformation();
         transformation.visit(astNodes, sourceUnit);
 
-        VisualCodeBuilder codeBuilder = new VisualCodeBuilder();
+        VisualCodeBuilder_Impl codeBuilder = new VisualCodeBuilder_Impl();
 
         Map<String, List<Scope>> scopes = new HashMap<>();
 
@@ -97,7 +97,7 @@ public class VRLVisualizationTransformation implements ASTTransformation {
 class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
 
     private SourceUnit sourceUnit;
-    private VisualCodeBuilder codeBuilder;
+    private VisualCodeBuilder_Impl codeBuilder;
     private Scope rootScope;
     private Scope currentScope;
     private Invocation lastMethod;
@@ -107,7 +107,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     private Map<MethodCallExpression, String> returnValuesOfMethods
             = new HashMap<>();
 
-    public VGroovyCodeVisitor(SourceUnit sourceUnit, VisualCodeBuilder codeBuilder) {
+    public VGroovyCodeVisitor(SourceUnit sourceUnit, VisualCodeBuilder_Impl codeBuilder) {
 
         this.sourceUnit = sourceUnit;
         this.codeBuilder = codeBuilder;
@@ -167,9 +167,13 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     @Override
     public void visitMethod(MethodNode s) {
 
-        currentScope = codeBuilder.declareMethod(
-                currentScope, new Type(s.getReturnType().getName(), true),
-                s.getName(), convertMethodParameters(s.getParameters()));
+        if (currentScope instanceof ClassDeclaration) {
+            currentScope = codeBuilder.declareMethod(
+                    (ClassDeclaration) currentScope, convertMethodModifiers(s.getModifiers()), new Type(s.getReturnType().getName(), true),
+                    s.getName(), convertMethodParameters(s.getParameters()));
+        } else {
+            throw new RuntimeException("method cannot be declared here!");
+        }
 
         currentScope.setCode(getCode(s));
 
@@ -248,7 +252,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
         codeBuilder.createInstance(
                 currentScope, new Type(s.getType().getName(), false),
-                codeBuilder.createVariable(currentScope, new Type(s.getType().getName(),false)),
+                codeBuilder.createVariable(currentScope, new Type(s.getType().getName(), false)).getName(),
                 arguments);
     }
 
@@ -299,7 +303,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         }
 
         if (!isVoid) {
-            returnValueName = codeBuilder.createVariable(currentScope, new Type(mTarget.getReturnType().getName(), true));
+            returnValueName = codeBuilder.createVariable(currentScope, new Type(mTarget.getReturnType().getName(), true)).getName();
             returnValuesOfMethods.put(s, returnValueName);
         }
 
@@ -314,7 +318,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     public void visitDeclarationExpression(DeclarationExpression s) {
         System.out.println(" --> DECLARATION: " + s.getVariableExpression());
         super.visitDeclarationExpression(s);
-        codeBuilder.createVariable(currentScope, new Type(s.getVariableExpression().getType().getName(),true), s.getVariableExpression().getName());
+        codeBuilder.createVariable(currentScope, new Type(s.getVariableExpression().getType().getName(), true), s.getVariableExpression().getName());
 
         if (s.getRightExpression() instanceof ConstantExpression) {
             ConstantExpression ce = (ConstantExpression) s.getRightExpression();
@@ -382,7 +386,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         return arguments;
     }
 
-    private Parameter[] convertMethodParameters(org.codehaus.groovy.ast.Parameter... params) {
+    private Parameters convertMethodParameters(org.codehaus.groovy.ast.Parameter... params) {
 
         Parameter[] result = new Parameter[params.length];
 
@@ -392,7 +396,29 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
             result[i] = new Parameter(new Type(p.getType().getName(), true), p.getName());
         }
 
-        return result;
+        return new Parameters(result);
+    }
+
+    private IModifiers convertMethodModifiers(int modifiers) {
+
+        List<Modifier> modifierList = new ArrayList<>();
+
+        // TODO rethink modifiers design (21.10.2013)
+        if (java.lang.reflect.Modifier.isPublic(modifiers)) {
+            modifierList.add(Modifier.PUBLIC);
+        } else if (java.lang.reflect.Modifier.isPrivate(modifiers)) {
+            modifierList.add(Modifier.PRIVATE);
+        } else if (java.lang.reflect.Modifier.isProtected(modifiers)) {
+            modifierList.add(Modifier.PROTECTED);
+        } else if (java.lang.reflect.Modifier.isAbstract(modifiers)) {
+            modifierList.add(Modifier.ABSTRACT);
+        } else if (java.lang.reflect.Modifier.isFinal(modifiers)) {
+            modifierList.add(Modifier.FINAL);
+        } else if (java.lang.reflect.Modifier.isStatic(modifiers)) {
+            modifierList.add(Modifier.STATIC);
+        }
+
+        return new Modifiers(modifierList.toArray(new Modifier[modifierList.size()]));
     }
 }
 
@@ -400,14 +426,14 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 //
 //    private SourceUnit sourceUnit;
 //    private ClassNode clsNode;
-//    private VisualCodeBuilder codeBuilder;
+//    private VisualCodeBuilder_Impl codeBuilder;
 //    private Scope rootScope;
 //    private Scope currentScope;
 //    private Invocation lastMethod;
 //    private Stack<String> vIdStack = new Stack<>();
 //    private IdGenerator generator = FlowFactory.newIdGenerator();
 //
-//    public ClassVisitor(SourceUnit sourceUnit/*, ClassNode clsNode*/, VisualCodeBuilder codeBuilder) {
+//    public ClassVisitor(SourceUnit sourceUnit/*, ClassNode clsNode*/, VisualCodeBuilder_Impl codeBuilder) {
 //
 //        this.sourceUnit = sourceUnit;
 //        this.clsNode = clsNode;

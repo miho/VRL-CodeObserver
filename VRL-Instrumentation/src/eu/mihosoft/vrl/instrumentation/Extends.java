@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-final class Extends {
+public final class Extends implements IExtends {
     private final List<Type> types = new ArrayList<>();
     private List<Type> readOnlyTypes;
 
@@ -23,6 +23,7 @@ final class Extends {
         this.types.addAll(Arrays.asList(types));
     }
 
+    @Override
     public List<Type> getTypes() {
         if (readOnlyTypes == null) {
             readOnlyTypes = Collections.unmodifiableList(types);

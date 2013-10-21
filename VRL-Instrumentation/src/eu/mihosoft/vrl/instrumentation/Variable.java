@@ -14,7 +14,7 @@ public interface Variable {
 
     public String getName();
 
-    public Type getType();
+    public IType getType();
 
     public Object getValue();
 
@@ -30,12 +30,12 @@ public interface Variable {
 class VariableImpl implements Variable {
 
     private Scope scope;
-    private Type type;
+    private IType type;
     private String varName;
     private Object value;
     private boolean constant;
 
-    public VariableImpl(Scope scope, Type type, String varName, Object value, boolean constant) {
+    public VariableImpl(Scope scope, IType type, String varName, Object value, boolean constant) {
         this.scope = scope;
         this.type = type;
         this.varName = varName;
@@ -49,7 +49,7 @@ class VariableImpl implements Variable {
     }
 
     @Override
-    public Type getType() {
+    public IType getType() {
         return type;
     }
 

@@ -10,16 +10,12 @@ package eu.mihosoft.vrl.instrumentation;
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public interface ClassDeclaration extends Scope {
+public interface MethodDeclaration extends Scope{
 
-    IModifiers getClassModifiers();
+    IModifiers getModifiers();
 
-    IType getClassType();
+    IParameters getParameters();
 
-    IExtends getExtends();
-
-    IExtends getImplements();
-
-    MethodDeclaration declareMethod(String id, IModifiers modifiers, IType returnType, String methodName, IParameters params);
+    IType getReturnType();
     
 }

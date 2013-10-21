@@ -29,7 +29,7 @@ public interface Scope extends CodeEntity {
 
     public Variable getVariable(String name);
 
-    public void createVariable(Type type, String varName);
+    public Variable createVariable(IType type, String varName);
 
     public void assignConstant(String varName, Object constant);
 
@@ -41,13 +41,11 @@ public interface Scope extends CodeEntity {
 
     public Scope getScopeById(String id);
 
-    public String createVariable(Type type);
+    public Variable createVariable(IType type);
 
     public DataFlow getDataFlow();
 
     public void generateDataFlow();
-
-    public Scope declareMethod(String id, Type returnType, String methodName, Parameter[] params);
 
     public Scope createScope(String id, ScopeType type, String name, Object[] args);
 }
@@ -117,12 +115,12 @@ class ScopeImpl implements Scope {
     }
 
     @Override
-    public void createVariable(Type type, String varName) {
-        variables.put(varName, new VariableImpl(this, type, varName, null, false));
+    public Variable createVariable(IType type, String varName) {
+        return variables.put(varName, new VariableImpl(this, type, varName, null, false));
     }
 
     @Override
-    public String createVariable(Type type) {
+    public Variable createVariable(IType type) {
         String varNamePrefix = "vrlInternalVar";
 
         int counter = 0;
@@ -133,9 +131,7 @@ class ScopeImpl implements Scope {
             varName = varNamePrefix + counter;
         }
 
-        createVariable(type, varName);
-
-        return varName;
+        return createVariable(type, varName);
     }
 
     @Override
@@ -281,23 +277,6 @@ class ScopeImpl implements Scope {
         }
     }
 
-    @Override
-    public Scope declareMethod(String id, Type returnType, String methodName, Parameter[] params) {
-        if (this.getType() != ScopeType.CLASS && this.getType() != ScopeType.NONE) {
-            throw new IllegalArgumentException("Specified scopetype does not support method declaration: " + this.getType());
-        }
-
-        Object[] metadata = {
-            returnType,
-            params
-        };
-
-        Scope methodScope = createScope(id, ScopeType.METHOD, methodName, metadata);
-
-        return methodScope;
-    }
-
-    @Override
     public Scope createScope(String id, ScopeType type, String name, Object[] args) {
         Scope scope = new ScopeImpl(id, this, type, name, args);
 

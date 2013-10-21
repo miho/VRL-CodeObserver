@@ -6,15 +6,14 @@
 
 package eu.mihosoft.vrl.instrumentation;
 
+import java.util.List;
+
 /**
  *
- * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
+ * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public enum Modifier {
-    PRIVATE,
-    PUBLIC,
-    STATIC,
-    FINAL,
-    ABSTRACT,
-    PROTECTED
+public interface IParameters {
+
+    List<Parameter> getParamenters();
+    
 }

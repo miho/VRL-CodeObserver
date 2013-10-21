@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-final class Modifiers {
+public final class Modifiers implements IModifiers {
 
     private final List<Modifier> modifiers = new ArrayList<>();
     private List<Modifier> readOnlyModifiers;
@@ -23,6 +23,7 @@ final class Modifiers {
         this.modifiers.addAll(Arrays.asList(modifiers));
     }
 
+    @Override
     public List<Modifier> getModifiers() {
         if (readOnlyModifiers == null) {
             readOnlyModifiers = Collections.unmodifiableList(modifiers);

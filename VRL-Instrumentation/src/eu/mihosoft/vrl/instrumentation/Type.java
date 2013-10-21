@@ -13,7 +13,7 @@ import java.util.Objects;
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public final class Type {
+public final class Type implements IType {
 
     private final String packageName;
     private final String shortName;
@@ -60,6 +60,7 @@ public final class Type {
     /**
      * @return the packageName
      */
+    @Override
     public String getPackageName() {
         return packageName;
     }
@@ -67,10 +68,12 @@ public final class Type {
     /**
      * @return the shortName
      */
+    @Override
     public String getShortName() {
         return shortName;
     }
 
+    @Override
     public String getFullClassName() {
         if (packageName.isEmpty()) {
             return shortName;

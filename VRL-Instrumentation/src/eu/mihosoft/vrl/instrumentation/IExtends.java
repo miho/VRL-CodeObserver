@@ -6,10 +6,14 @@
 
 package eu.mihosoft.vrl.instrumentation;
 
+import java.util.List;
+
 /**
  *
- * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
+ * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public class Method {
+public interface IExtends {
+
+    List<Type> getTypes();
     
 }
