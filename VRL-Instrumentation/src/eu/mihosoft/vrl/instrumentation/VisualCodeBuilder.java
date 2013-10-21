@@ -20,7 +20,7 @@ public interface VisualCodeBuilder {
 
     Variable createVariable(Scope scope, IType type, String varName);
 
-    ForDeclaration declareFor(Scope scope, int from, int to, int inc);
+    ForDeclaration declareFor(Scope scope, String varName, int from, int to, int inc);
 
     MethodDeclaration declareMethod(ClassDeclaration scope, IModifiers modifiers, Type returnType, String methodName, IParameters params);
 

@@ -32,7 +32,7 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
         Variable result = scope.createVariable(type, varName);
 
         variables.push(varName);
-        
+
         return result;
     }
 
@@ -51,13 +51,37 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
     }
 
     @Override
-    public void declareFor(Scope scope, int from, int to, int inc) {
+    public ForDeclaration declareFor(Scope scope, String varName, int from, int to, int inc) {
 
+        if (scope.getType() == ScopeType.CLASS || scope.getType() == ScopeType.INTERFACE) {
+            throw new UnsupportedOperationException("Unsupported parent scope specified."
+                    + " Class " + ScopeType.CLASS + " or " + ScopeType.INTERFACE
+                    + " based implementations are not supported!");
+        }
+
+        ForDeclaration result = new ForDeclaration_Impl(
+                idRequest.request(), scope, varName, from, to, inc);
+
+        scope.getControlFlow().callScope(result);
+
+        return result;
     }
 
     @Override
-    public void declareWhile(Scope scope, Invocation check) {
+    public WhileDeclaration declareWhile(Scope scope, Invocation check) {
+        
+        if (scope.getType() == ScopeType.CLASS || scope.getType() == ScopeType.INTERFACE) {
+            throw new UnsupportedOperationException("Unsupported parent scope specified."
+                    + " Class " + ScopeType.CLASS + " or " + ScopeType.INTERFACE
+                    + " based implementations are not supported!");
+        }
 
+        WhileDeclaration_Impl result = new WhileDeclaration_Impl(
+                idRequest.request(), scope, check);
+
+        scope.getControlFlow().callScope(result);
+
+        return result;
     }
 
     @Override
