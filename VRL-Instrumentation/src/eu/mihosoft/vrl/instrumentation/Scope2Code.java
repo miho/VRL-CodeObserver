@@ -29,7 +29,7 @@ public class Scope2Code {
     }
 
     public static void main(String[] args) {
-        Invocation e = new InvocationImpl("1", "obj1", "m1", false, true, "unknown", new VariableImpl(null, "Class<?>", "myVar", null, false), new VariableImpl(null, "int", "3", null, true));
+//        Invocation e = new InvocationImpl("1", "obj1", "m1", false, true, "unknown", new VariableImpl(null, new Type("java.lang.Class<?>"), "myVar", null, false), new VariableImpl(null, new Type("int"), "3", null, true));
 
 //        InvocationCodeRenderer invocationCodeRenderer = new InvocationCodeRenderer();
 //        System.out.println(invocationCodeRenderer.render(e));
@@ -71,7 +71,7 @@ class ScopeRendererImpl implements ScopeRenderer {
     }
 
     private void renderClass(Scope s, StringBuilder builder) {
-        builder.append(render(s));
+//        builder.append();
     }
 
     private void renderMethod(Scope s, StringBuilder builder) {

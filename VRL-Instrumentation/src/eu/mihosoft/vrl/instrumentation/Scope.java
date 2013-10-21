@@ -6,6 +6,7 @@ package eu.mihosoft.vrl.instrumentation;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,13 +39,17 @@ public interface Scope extends CodeEntity {
 
     public List<Scope> getScopes();
 
+    public Scope getScopeById(String id);
+
     public String createVariable(Type type);
 
     public DataFlow getDataFlow();
-    
+
     public void generateDataFlow();
 
-    public void declareMethod(Type returnType, String methodName, Parameter[] params);
+    public Scope declareMethod(String id, Type returnType, String methodName, Parameter[] params);
+
+    public Scope createScope(String id, ScopeType type, String name, Object[] args);
 }
 
 class ScopeImpl implements Scope {
@@ -52,25 +57,37 @@ class ScopeImpl implements Scope {
     private String id;
     Scope parent;
     ScopeType type;
-    private String name;
+    private final String name;
     Object[] scopeArgs;
     Map<String, Variable> variables = new HashMap<>();
     ControlFlow controlFlow;
     DataFlow dataFlow;
     private final List<Scope> scopes = new ArrayList<>();
     private String code;
+    private List<Scope> readOnlyScopes;
 
-    public ScopeImpl(String id, Scope parent, ScopeType type, String name, Object[] scopeArgs) {
+    public ScopeImpl(String id, Scope parent, ScopeType type, String name, Object... scopeArgs) {
         this.id = id;
         this.parent = parent;
-        if (parent != null) {
-            this.parent.getScopes().add(this);
-        }
+
         this.type = type;
         this.name = name;
         this.scopeArgs = scopeArgs;
         this.controlFlow = new ControlFlowImpl();
         this.dataFlow = new DataFlowImpl();
+
+        if (parent != null) {
+            if (this.parent instanceof ScopeImpl) {
+                ((ScopeImpl) this.parent).addScope(this);
+            } else {
+                throw new UnsupportedOperationException("Unsupported parent scope specified."
+                        + " Only " + ScopeImpl.class + " based implementations are supported!");
+            }
+
+            if (parent.getType() != ScopeType.CLASS && parent.getType() != ScopeType.NONE) {
+                parent.getControlFlow().callScope(this);
+            }
+        }
     }
 
     @Override
@@ -165,7 +182,12 @@ class ScopeImpl implements Scope {
      */
     @Override
     public List<Scope> getScopes() {
-        return scopes;
+
+        if (readOnlyScopes == null) {
+            readOnlyScopes = Collections.unmodifiableList(scopes);
+        }
+
+        return readOnlyScopes;
     }
 
     @Override
@@ -233,29 +255,66 @@ class ScopeImpl implements Scope {
     public DataFlow getDataFlow() {
         return dataFlow;
     }
-    
+
     @Override
     public void generateDataFlow() {
-        
+
         System.out.println("DATAFLOW---------------------------------");
-        
-        for(Invocation i : controlFlow.getInvocations()) {
+
+        for (Invocation i : controlFlow.getInvocations()) {
 //            System.out.println("invocation: " + i);
-            for(Variable v : i.getArguments()) {
+            for (Variable v : i.getArguments()) {
                 System.out.println("--> varname: " + v.getName() + ", " + i);
             }
-            
+
             if (i instanceof ScopeInvocation) {
-                ((ScopeInvocation)i).getScope().generateDataFlow();
+                ((ScopeInvocation) i).getScope().generateDataFlow();
             }
         }
-        
+
         boolean isClassOrScript = getType() == ScopeType.CLASS || getType() == ScopeType.NONE;
-        
-       if (isClassOrScript) {
+
+        if (isClassOrScript) {
             for (Scope s : getScopes()) {
                 s.generateDataFlow();
             }
         }
+    }
+
+    @Override
+    public Scope declareMethod(String id, Type returnType, String methodName, Parameter[] params) {
+        if (this.getType() != ScopeType.CLASS && this.getType() != ScopeType.NONE) {
+            throw new IllegalArgumentException("Specified scopetype does not support method declaration: " + this.getType());
+        }
+
+        Object[] metadata = {
+            returnType,
+            params
+        };
+
+        Scope methodScope = createScope(id, ScopeType.METHOD, methodName, metadata);
+
+        return methodScope;
+    }
+
+    @Override
+    public Scope createScope(String id, ScopeType type, String name, Object[] args) {
+        Scope scope = new ScopeImpl(id, this, type, name, args);
+
+        return scope;
+    }
+
+    @Override
+    public Scope getScopeById(String id) {
+        for (Scope s : scopes) {
+            if (s.getId().equals(id)) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    private void addScope(ScopeImpl s) {
+        scopes.add(s);
     }
 }

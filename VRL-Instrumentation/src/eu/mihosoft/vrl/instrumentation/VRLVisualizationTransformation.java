@@ -65,7 +65,6 @@ public class VRLVisualizationTransformation implements ASTTransformation {
         scopes.put(sourceUnit.getName(), clsScopes);
         scopes.get(sourceUnit.getName()).add(visitor.getRootScope());
 
-
         // apply transformation for each class in the specified source unit
         for (ClassNode clsNode : sourceUnit.getAST().getClasses()) {
 
@@ -74,14 +73,14 @@ public class VRLVisualizationTransformation implements ASTTransformation {
 //                List<Scope> clsScopes = new ArrayList<>();
 //                scopes.put(clsNode.getName(), clsScopes);
 //            }
-
             //ClassVisitor visitor = new ClassVisitor(sourceUnit, clsNode, codeBuilder);
-
             visitor.visitClass(clsNode);
 //            clsNode.visitContents(visitor);
 
             //scopes.get(clsNode.getName()).add(visitor.getRootScope());
-
+            for (MethodNode m : clsNode.getAllDeclaredMethods()) {
+                System.out.println("method: " + m.getName());
+            }
         }
 
         for (String clazz : scopes.keySet()) {
@@ -91,6 +90,7 @@ public class VRLVisualizationTransformation implements ASTTransformation {
         }
 
         UIBinding.scopes.putAll(scopes);
+
     }
 }
 
@@ -103,8 +103,8 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     private Invocation lastMethod;
     private Stack<String> vIdStack = new Stack<>();
     private IdGenerator generator = FlowFactory.newIdGenerator();
-    
-    private Map<MethodCallExpression,String> returnValuesOfMethods
+
+    private Map<MethodCallExpression, String> returnValuesOfMethods
             = new HashMap<>();
 
     public VGroovyCodeVisitor(SourceUnit sourceUnit, VisualCodeBuilder codeBuilder) {
@@ -162,19 +162,15 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
         currentScope.setCode(getCode(s));
 
-
     }
 
     @Override
     public void visitMethod(MethodNode s) {
-        
-        // fill metadata
-        Object[] metadata = {
-            s.getReturnType().getName(),
-            convertMethodParameters(s.getParameters())
-        };
 
-        currentScope = codeBuilder.createScope(currentScope, ScopeType.METHOD, s.getName(), metadata);
+        currentScope = codeBuilder.declareMethod(
+                currentScope, new Type(s.getReturnType().getName(), true),
+                s.getName(), convertMethodParameters(s.getParameters()));
+
         currentScope.setCode(getCode(s));
 
         super.visitMethod(s);
@@ -183,10 +179,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
         currentScope.setCode(getCode(s));
 
-    
     }
-    
-    
 
 //    @Override
 //    public void visitBlockStatement(BlockStatement s) {
@@ -254,8 +247,8 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         Variable[] arguments = convertArguments(args);
 
         codeBuilder.createInstance(
-                currentScope, new Type(s.getType().getName()),
-                codeBuilder.createVariable(currentScope, new Type(s.getType().getName())),
+                currentScope, new Type(s.getType().getName(), false),
+                codeBuilder.createVariable(currentScope, new Type(s.getType().getName(),false)),
                 arguments);
     }
 
@@ -305,9 +298,8 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
             System.out.println("TYPECHECKED!!!");
         }
 
-
         if (!isVoid) {
-            returnValueName = codeBuilder.createVariable(currentScope, new Type(mTarget.getReturnType().getName()));
+            returnValueName = codeBuilder.createVariable(currentScope, new Type(mTarget.getReturnType().getName(), true));
             returnValuesOfMethods.put(s, returnValueName);
         }
 
@@ -322,7 +314,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     public void visitDeclarationExpression(DeclarationExpression s) {
         System.out.println(" --> DECLARATION: " + s.getVariableExpression());
         super.visitDeclarationExpression(s);
-        codeBuilder.createVariable(currentScope, new Type(s.getVariableExpression().getType().getName()), s.getVariableExpression().getName());
+        codeBuilder.createVariable(currentScope, new Type(s.getVariableExpression().getType().getName(),true), s.getVariableExpression().getName());
 
         if (s.getRightExpression() instanceof ConstantExpression) {
             ConstantExpression ce = (ConstantExpression) s.getRightExpression();
@@ -360,21 +352,21 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
             if (e instanceof ConstantExpression) {
                 ConstantExpression ce = (ConstantExpression) e;
 
-                v = VariableFactory.createConstantVariable(currentScope, new Type(ce.getType().getName()), "", ce.getValue());
+                v = VariableFactory.createConstantVariable(currentScope, new Type(ce.getType().getName(), true), "", ce.getValue());
             }
 
             if (e instanceof VariableExpression) {
                 VariableExpression ve = (VariableExpression) e;
 
-                v = VariableFactory.createObjectVariable(currentScope, new Type(ve.getType().getName()), ve.getName());
+                v = VariableFactory.createObjectVariable(currentScope, new Type(ve.getType().getName(), true), ve.getName());
             }
 
             if (e instanceof PropertyExpression) {
                 PropertyExpression pe = (PropertyExpression) e;
 
-                v = VariableFactory.createObjectVariable(currentScope, new Type("vrl.internal.PROPERTYEXPR"), "don't know");
+                v = VariableFactory.createObjectVariable(currentScope, new Type("vrl.internal.PROPERTYEXPR", true), "don't know");
             }
-            
+
             if (e instanceof MethodCallExpression) {
                 System.out.println("TYPE: " + e);
                 v = currentScope.getVariable(returnValuesOfMethods.get(e));
@@ -382,7 +374,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
             if (v == null) {
                 System.out.println("TYPE: " + e);
-                v = VariableFactory.createObjectVariable(currentScope, new Type("vrl.internal.unknown"), "don't know");
+                v = VariableFactory.createObjectVariable(currentScope, new Type("vrl.internal.unknown", true), "don't know");
             }
 
             arguments[i] = v;
@@ -391,15 +383,15 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     }
 
     private Parameter[] convertMethodParameters(org.codehaus.groovy.ast.Parameter... params) {
-        
+
         Parameter[] result = new Parameter[params.length];
-        
-        for(int i = 0; i < params.length;i++) {
+
+        for (int i = 0; i < params.length; i++) {
             org.codehaus.groovy.ast.Parameter p = params[i];
-            
-            result[i] = new Parameter(new Type(p.getType().getName()), p.getName());
+
+            result[i] = new Parameter(new Type(p.getType().getName(), true), p.getName());
         }
-        
+
         return result;
     }
 }

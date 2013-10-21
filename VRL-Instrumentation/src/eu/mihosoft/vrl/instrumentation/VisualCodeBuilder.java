@@ -12,7 +12,7 @@ import java.util.Stack;
  */
 public class VisualCodeBuilder {
 
-    private Stack<String> variables = new Stack<>();
+    private final Stack<String> variables = new Stack<>();
     private IdRequest idRequest;
 
     public String popVariable() {
@@ -20,11 +20,11 @@ public class VisualCodeBuilder {
     }
 
     public Scope createScope(Scope parent, ScopeType type, String name, Object... args) {
-        Scope scope = new ScopeImpl(idRequest.request(), parent, type, name, args);
-        if (parent != null && parent.getType() != ScopeType.CLASS && parent.getType() != ScopeType.NONE) {
-            parent.getControlFlow().callScope(scope);
+        if (parent != null) {
+            return parent.createScope(idRequest.request(), type, name, args);
+        } else {
+            return new ScopeImpl(idRequest.request(), null, type, name, args);
         }
-        return scope;
     }
 
     public void createVariable(Scope scope, Type type, String varName) {
@@ -41,14 +41,16 @@ public class VisualCodeBuilder {
         return name;
     }
 
-    public void delcareMethod(Scope scope, Type returnType, String methodName, Parameter... params) {
+    public Scope declareMethod(Scope scope, Type returnType, String methodName, Parameter... params) {
+        return scope.declareMethod(idRequest.request(), returnType, methodName, params);
+    }
 
-        if (scope.getType() != ScopeType.CLASS || scope.getType() != ScopeType.NONE) {
-            throw new IllegalArgumentException("Specified scopetype does not support method declaration: " + scope.getType());
-        }
+    public void declareFor(Scope scope, int from, int to, int inc) {
 
-        scope.declareMethod(returnType, methodName, params);
-        
+    }
+
+    public void declareWhile(Scope scope, Invocation check) {
+
     }
 
     public void createInstance(Scope scope, Type type, String varName, Variable... args) {

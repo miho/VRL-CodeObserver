@@ -10,6 +10,7 @@ package eu.mihosoft.vrl.instrumentation;
  */
 public enum ScopeType {
     CLASS,
+    INTERFACE,
     METHOD,
     CLOSURE,
     FOR,

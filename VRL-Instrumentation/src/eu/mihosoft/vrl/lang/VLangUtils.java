@@ -49,7 +49,6 @@
  * A Framework for Declarative GUI Programming on the Java Platform.
  * Computing and Visualization in Science, 2011, in press.
  */
-
 package eu.mihosoft.vrl.lang;
 
 import eu.mihosoft.g4j.lang.FilterChars;
@@ -83,16 +82,16 @@ public class VLangUtils {
      */
     public static String filterAutoGenCode(String code, String type) {
 
-        Pattern p =
-                Patterns.createVRLTagPattern(
-                "vrl-editor-autogen");
+        Pattern p
+                = Patterns.createVRLTagPattern(
+                        "vrl-editor-autogen");
 
         String[] lines = code.split("\n");
 
-        Pattern openP =
-                Patterns.createVRLOpenTagPattern("vrl-editor-autogen");
-        Pattern closeP =
-                Patterns.createVRLCloseTagPattern("vrl-editor-autogen");
+        Pattern openP
+                = Patterns.createVRLOpenTagPattern("vrl-editor-autogen");
+        Pattern closeP
+                = Patterns.createVRLCloseTagPattern("vrl-editor-autogen");
 
         String result = "";
 
@@ -111,7 +110,6 @@ public class VLangUtils {
                 tag = l.replaceFirst("//\\s*", "");
 
 //                System.out.println("TAG: " + tag);
-
                 if (openP.matcher(tag).find()
                         && getVRLTagAttribute(tag, "type").equals(type)) {
                     insideAutogen = true;
@@ -139,13 +137,12 @@ public class VLangUtils {
 //        System.out.println("----- CODE 2 -----");
 //        System.out.println(result);
 //        System.out.println("------------------");
-
-
         return result;
     }
-    
+
     /**
      * Returns class name of the specified class file.
+     *
      * @param parent parent directory (not part of the classpath)
      * @param f class file, including full classpath
      * @return class name of the specified class file
@@ -166,7 +163,7 @@ public class VLangUtils {
         // remove absolute path + the / or \ after the path and ensure /
         // is used for classpath on windows
         className = className.substring(
-               parent.getAbsolutePath().length() + 1,
+                parent.getAbsolutePath().length() + 1,
                 className.length()).replace('\\', '/');
 
         return className;
@@ -200,7 +197,6 @@ public class VLangUtils {
             attributeIdx = tag.indexOf(" " + attribute + " ");
         }
 
-
         if (attributeIdx < 0) {
             // attribute not found
             return "";
@@ -226,16 +222,16 @@ public class VLangUtils {
     /**
      * Returns the class name of the first class defined in the given source
      * code.
-     * 
+     *
      *
      * @param code code to analyze
      * @return class name of the first class defined in the given source code or
      * an empty string if no class has been defined
      */
     public static String classNameFromCode(String code) {
-        
+
         code = removeCommentsAndStringsFromCode(code);
-        
+
         String result = "";
 
         String[] lines = code.split("\\n");
@@ -259,20 +255,20 @@ public class VLangUtils {
 
         return result;
     }
-    
+
     /**
-     * Returns the interface name of the first interface defined in the given source
-     * code.
-     * 
+     * Returns the interface name of the first interface defined in the given
+     * source code.
+     *
      *
      * @param code code to analyze
      * @return class name of the first class defined in the given source code or
      * an empty string if no class has been defined
      */
     public static String interfaceNameFromCode(String code) {
-        
+
         code = removeCommentsAndStringsFromCode(code);
-        
+
         String result = "";
 
         String[] lines = code.split("\\n");
@@ -296,81 +292,80 @@ public class VLangUtils {
 
         return result;
     }
-    
+
     /**
      * Returns the number of toplevel classes and interfaces in the specified
      * code.
+     *
      * @param code code
-     * @return number of toplevel classes and interfaces in the specified
-     *         code
+     * @return number of toplevel classes and interfaces in the specified code
      */
     public static int numberOfTopLevelClassesAndInterfaces(String code) {
         code = removeCommentsAndStringsFromCode(code);
-        
+
         int blockCounter = 0;
-        
+
         StringBuilder filteredCode = new StringBuilder();
-        
+
         for (int i = 0; i < code.length(); i++) {
-            
+
             boolean isBracket = false;
             boolean isNewLine = false;
-            
+
             char c = code.charAt(i);
-            
+
             if (c == '{') {
                 isBracket = true;
                 blockCounter++;
-            } else  if (c == '}') {
+            } else if (c == '}') {
                 isBracket = true;
                 blockCounter--;
             } else if (c == '\n' || c == '\r') {
                 isNewLine = true;
             }
-            
+
             if (blockCounter == 0 && !isBracket && !isNewLine) {
                 filteredCode.append(c);
             }
         }
 
         String[] token = filteredCode.toString().split("((\\.class)|\\b)");
-        
+
         int result = 0;
-        
+
         for (String t : token) {
-            
+
             if (t.trim().equals("class")) {
                 result++;
             } else if (t.trim().equals("interface")) {
                 result++;
             }
         }
-        
+
         return result;
     }
-    
-     /**
-     * Returns the names of all classes and interfaces in the specified
-     * code.
+
+    /**
+     * Returns the names of all classes and interfaces in the specified code.
+     *
      * @param code code
-     * @return names of all classes and interfaces in the specified
-     *         code
+     * @return names of all classes and interfaces in the specified code
      */
     public static Collection<String> getClassAndInterfaceNamesFromCode(String code) {
-        
+
         AstBuilder builder = new AstBuilder();
-        
-        List<ASTNode> nodes = 
-                builder.buildFromString(CompilePhase.CONVERSION, code);
+
+        List<ASTNode> nodes
+                = builder.buildFromString(CompilePhase.CONVERSION, code);
 
         Collection<String> classNames = new ArrayList<String>();
-        
-        for(ASTNode n : nodes) {
+
+        for (ASTNode n : nodes) {
             if (n instanceof ClassNode) {
-                classNames.add(((ClassNode)n).getName());
+                classNames.add(((ClassNode) n).getName());
             }
         }
-        
+
         return classNames;
     }
 
@@ -379,23 +374,21 @@ public class VLangUtils {
      *
      *
      * @param code
-     * @return
-     * <code>true</code> if the class is defined;
-     * <code>false</code> otherwise
+     * @return <code>true</code> if the class is defined; <code>false</code>
+     * otherwise
      */
     public static boolean classDefinedInCode(String code) {
         code = removeCommentsAndStringsFromCode(code);
         return !classNameFromCode(code).equals("");
     }
-    
+
     /**
      * Indicates whether in the specified code an interface is defined.
      *
      *
      * @param code
-     * @return
-     * <code>true</code> if the interface is defined;
-     * <code>false</code> otherwise
+     * @return <code>true</code> if the interface is defined; <code>false</code>
+     * otherwise
      */
     public static boolean interfaceDefinedInCode(String code) {
         code = removeCommentsAndStringsFromCode(code);
@@ -404,11 +397,10 @@ public class VLangUtils {
 
     /**
      * Indicates whether in the specified code a package name is defined.
-     * 
+     *
      *
      * @param code
-     * @return
-     * <code>true</code> if the package name is defined;
+     * @return <code>true</code> if the package name is defined;
      * <code>false</code> otherwise
      */
     public static boolean packageDefinedInCode(String code) {
@@ -417,7 +409,7 @@ public class VLangUtils {
 
     /**
      * Get package name defined in the given source code.
-     * 
+     *
      *
      * @param code code to analyze
      * @return package name defined in the given source code or empty string if
@@ -431,10 +423,10 @@ public class VLangUtils {
         String[] lines = code.split("\\n");
 
         // match example: ^package eu.mihosoft.vrl;$
-        Pattern p1 =
-                Pattern.compile(
-                "^\\s*package\\s+" + Patterns.PACKAGE_NAME_STRING + ";",
-                Pattern.DOTALL);
+        Pattern p1
+                = Pattern.compile(
+                        "^\\s*package\\s+" + Patterns.PACKAGE_NAME_STRING + ";",
+                        Pattern.DOTALL);
 
         for (String l : lines) {
 
@@ -446,8 +438,8 @@ public class VLangUtils {
 
                 l = m1.group();
 
-                result =
-                        l.replaceFirst("^\\s*package\\s+", "").
+                result
+                        = l.replaceFirst("^\\s*package\\s+", "").
                         split(" ")[0].replace(";", "");
                 break;
             }
@@ -458,7 +450,7 @@ public class VLangUtils {
 
     /**
      * Returns full classname from code, i.e., classname with package name.
-     * 
+     *
      *
      * @param code code to analyze
      * @return full classname from code, i.e., classname with package name or //
@@ -486,13 +478,13 @@ public class VLangUtils {
 
         return result;
     }
-    
-        /**
+
+    /**
      * Returns full interface from code, i.e., interface name with package name.
-     * 
+     *
      * @param code code to analyze
-     * @return full interface name from code, i.e., interface name with package name or //
-     * * an empty string if no interface has been defined
+     * @return full interface name from code, i.e., interface name with package
+     * name or // * an empty string if no interface has been defined
      */
     public static String fullInterfaceNameFromCode(String code) {
 
@@ -559,15 +551,13 @@ public class VLangUtils {
 //
 //        return result;
 //    }
-
     /**
      * Indicates whether the specified class name is valid. Currently only
      * unqualified names are supported, i.e. names without package.
      *
      * @param className class name to check
-     * @return
-     * <code>true</code> if the class name is valid;
-     * <code>false</code> otherwise
+     * @return <code>true</code> if the class name is valid; <code>false</code>
+     * otherwise
      */
     public static boolean isClassNameValid(String className) {
 
@@ -583,12 +573,10 @@ public class VLangUtils {
      * unqualified names are supported.
      *
      * @param methodName method name to check
-     * @return
-     * <code>true</code> if the variable name is valid;
+     * @return <code>true</code> if the variable name is valid;
      * <code>false</code> otherwise
      */
     public static boolean isMethodNameValid(String methodName) {
-
 
         if (methodName == null) {
             methodName = "";
@@ -602,8 +590,7 @@ public class VLangUtils {
      * unqualified names are supported.
      *
      * @param varName variable name to check
-     * @return
-     * <code>true</code> if the variable name is valid;
+     * @return <code>true</code> if the variable name is valid;
      * <code>false</code> otherwise
      */
     public static boolean isVariableNameValid(String varName) {
@@ -619,11 +606,11 @@ public class VLangUtils {
      * Indicates whether the specified identifier name is valid.
      *
      * @param varName identifier name to check
-     * @return
-     * <code>true</code> if the identifier name is valid;
+     * @param acceptKeywords defines whether to accept keywords
+     * @return <code>true</code> if the identifier name is valid;
      * <code>false</code> otherwise
      */
-    private static boolean isIdentifierValid(String varName) {
+    public static boolean isIdentifierValid(String varName, boolean acceptKeywords) {
 
         if (varName == null) {
             varName = "";
@@ -634,7 +621,7 @@ public class VLangUtils {
 
         boolean result = p.matcher(varName).matches();
 
-        if (result) {
+        if (result && !acceptKeywords) {
             // now check whether the identifier is a reserved keyword
             result = !Keywords.isKeyword(varName);
         }
@@ -643,12 +630,27 @@ public class VLangUtils {
     }
 
     /**
+     * Indicates whether the specified identifier name is valid. This method
+     * considers keywords to be invalid!
+     *
+     * Use {@link #isIdentifierValid(java.lang.String, boolean) }
+     * to override this behavior.
+     *
+     * @param varName identifier name to check
+     * @return <code>true</code> if the identifier name is valid;
+     * <code>false</code> otherwise
+     */
+    public static boolean isIdentifierValid(String varName) {
+
+        return isIdentifierValid(varName, true);
+    }
+
+    /**
      * Indicates whether the specified name is a valid component class
      * identifier.
      *
      * @param varName identifier name to check
-     * @return
-     * <code>true</code> if the identifier name is valid;
+     * @return <code>true</code> if the identifier name is valid;
      * <code>false</code> otherwise
      */
     public static boolean isComponentClassNameValid(String varName) {
@@ -697,8 +699,7 @@ public class VLangUtils {
      * supported.
      *
      * @param varName package name to check
-     * @return
-     * <code>true</code> if the package name is valid;
+     * @return <code>true</code> if the package name is valid;
      * <code>false</code> otherwise
      */
     public static boolean isPackageNameValid(String packageName) {
@@ -725,15 +726,12 @@ public class VLangUtils {
 //        Pattern p = Pattern.compile(
 //                "(" + getIdentifierRegex() + ")"
 //                + "(\\." + getIdentifierRegex() + ")*");
-
         return Patterns.PACKAGE_NAME.matcher(packageName).matches();
     }
 
     /**
-     * Adds escape characters to all occurences of
-     * <code>"</code>,
-     * <code>\</code> and
-     * <code>\n</code>.
+     * Adds escape characters to all occurences of <code>"</code>,
+     * <code>\</code> and <code>\n</code>.
      *
      * @param code code
      * @return code with escape characters
@@ -745,8 +743,7 @@ public class VLangUtils {
     }
 
     /**
-     * Adds escape characters to all occurences of
-     * <code>\</code>.
+     * Adds escape characters to all occurences of <code>\</code>.
      *
      * @param code code
      * @return code with escape characters
@@ -782,8 +779,7 @@ public class VLangUtils {
     }
 
     /**
-     * Adds escape characters to all occurences of
-     * <code>"</code>.
+     * Adds escape characters to all occurences of <code>"</code>.
      *
      * @param code code
      * @return code with escape characters
@@ -797,8 +793,7 @@ public class VLangUtils {
     }
 
     /**
-     * Adds escape characters to all occurences of
-     * <code>\n</code>.
+     * Adds escape characters to all occurences of <code>\n</code>.
      *
      * @param code code
      * @return code with escape characters
@@ -816,8 +811,7 @@ public class VLangUtils {
      * character.
      *
      * @param ch character to check
-     * @return
-     * <code>true</code> if the character is printable;
+     * @return <code>true</code> if the character is printable;
      * <code>false</code> otherwise
      */
     public static boolean isPrintableASCIICharacter(char ch) {
@@ -829,9 +823,8 @@ public class VLangUtils {
      * characters.
      *
      * @param s string to check
-     * @return
-     * <code>true</code> if the string is printable;
-     * <code>false</code> otherwise
+     * @return <code>true</code> if the string is printable; <code>false</code>
+     * otherwise
      */
     public static boolean isPrintableString(String s) {
 
@@ -847,7 +840,9 @@ public class VLangUtils {
     /**
      * Returns the short class name from the specified full class name, i.e.,
      * class name without package/classpath. Class names specified using dot
-     * separation and slash separation are supported. <p>Example:</p>
+     * separation and slash separation are supported.
+     * <p>
+     * Example:</p>
      * <pre>
      * Short name: ClassOne
      * Full name : a.b.c.ClassOne
@@ -920,9 +915,8 @@ public class VLangUtils {
      * classpath.
      *
      * @param name class name to check
-     * @return
-     * <code>true</code> if the specified class name is a short class name;
-     * <code>false</code> otherwise
+     * @return <code>true</code> if the specified class name is a short class
+     * name; <code>false</code> otherwise
      */
     public static boolean isShortName(String name) {
         return dotToSlash(name).equals(shortNameFromFullClassName(name));
@@ -969,8 +963,7 @@ public class VLangUtils {
         // filter chars (classname could occur in chars for one-char names
         // like A,B,C etc.)
         code = new FilterChars().process(code);
-        
-        
+
         return code;
     }
 
@@ -988,8 +981,8 @@ public class VLangUtils {
         Matcher m = p.matcher(code);
 
         while (m.find()) {
-            String match =
-                    m.group().replace("import", "").replace(";", "").trim();
+            String match
+                    = m.group().replace("import", "").replace(";", "").trim();
             result.add(match);
         }
 
@@ -997,11 +990,14 @@ public class VLangUtils {
     }
 
     /**
-     * <p> Checks whether the specified class is used by the given source code.
-     * </p> <p><b>Note:</b> this method assumes the specified class exists. For
-     * non existent classes it might return
-     * <code>true</code>! Only for classes from the code's package it is safe to
-     * specify non existent classes as they are explicitly specified.</p>
+     * <p>
+     * Checks whether the specified class is used by the given source code.
+     * </p>
+     * <p>
+     * <b>Note:</b> this method assumes the specified class exists. For non
+     * existent classes it might return <code>true</code>! Only for classes from
+     * the code's package it is safe to specify non existent classes as they are
+     * explicitly specified.</p>
      *
      * @param code code
      * @param fullClassName full class name, e.g.,
@@ -1009,9 +1005,8 @@ public class VLangUtils {
      * @param classesInPackage collection containing short class names, i.e.,
      * names without package of all classes of the package defined in the given
      * code
-     * @return
-     * <code>true</code> if the specified class is used by the given code;
-     * <code>false</code> otherwise
+     * @return <code>true</code> if the specified class is used by the given
+     * code; <code>false</code> otherwise
      */
     public static boolean isClassUsedInCode(String code, String fullClassName,
             Collection<String> classesInPackage) {
@@ -1043,8 +1038,6 @@ public class VLangUtils {
         //    a class
         // 3) if neither 1) or 2) specifies the class, implicit imports are
         //    checked
-
-
         // check whether classesInPackage only contain short names
         for (String clsName : classesInPackage) {
             if (!isShortName(clsName)) {
@@ -1057,8 +1050,8 @@ public class VLangUtils {
         String packageNameOfCode = slashToDot(packageNameFromCode(code));
         String packageNameFromClassName = slashToDot(
                 packageNameFromFullClassName(fullClassName));
-        String shortClassName =
-                shortNameFromFullClassName(fullClassName);
+        String shortClassName
+                = shortNameFromFullClassName(fullClassName);
         List<String> imports = importsFromCode(code);
 
         // if class name or package name is invalid we throw an exception
@@ -1124,7 +1117,6 @@ public class VLangUtils {
         }
 
         // yes, we do need 2 and/or 3 because we could not proof they will fail
-
         // ****************************************************************************
         // 2a) check for short name (if class is in same package as the specified code)
         // ****************************************************************************

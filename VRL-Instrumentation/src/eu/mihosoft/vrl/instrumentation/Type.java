@@ -5,6 +5,7 @@
  */
 package eu.mihosoft.vrl.instrumentation;
 
+import eu.mihosoft.vrl.lang.Patterns;
 import eu.mihosoft.vrl.lang.VLangUtils;
 import java.util.Objects;
 
@@ -12,19 +13,21 @@ import java.util.Objects;
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public class Type {
+public final class Type {
 
     private final String packageName;
     private final String shortName;
+    private final boolean isReturnOrParamType;
 
-    public Type(String packageName, String shortName) {
+    public Type(String packageName, String shortName, boolean isReturnOrParamType) {
         this.packageName = packageName;
         this.shortName = shortName;
+        this.isReturnOrParamType = isReturnOrParamType;
 
         validate();
     }
 
-    public Type(String fullName) {
+    public Type(String fullName, boolean isReturnOrParamType) {
 
         if (!VLangUtils.isShortName(fullName)) {
             this.packageName = VLangUtils.packageNameFromFullClassName(fullName);
@@ -34,15 +37,23 @@ public class Type {
             this.shortName = fullName;
         }
 
+        this.isReturnOrParamType = isReturnOrParamType;
+
         validate();
     }
 
     private void validate() {
-        if (!VLangUtils.isPackageNameValid(packageName)) {
+        if (!VLangUtils.isPackageNameValid(VLangUtils.slashToDot(packageName))) {
             throw new IllegalArgumentException("Specified package is invalid: " + getPackageName());
         }
-        if (!VLangUtils.isClassNameValid(packageName)) {
-            throw new IllegalArgumentException("Specified classname is invalid: " + getShortName());
+        if (!isReturnOrParamType) {
+            if (!VLangUtils.isClassNameValid(shortName)) {
+                throw new IllegalArgumentException("Specified classname is invalid: " + getShortName());
+            }
+        } else {
+            if (!VLangUtils.isIdentifierValid(shortName, true)) {
+                throw new IllegalArgumentException("Specified classname is invalid: " + getShortName());
+            }
         }
     }
 
@@ -98,7 +109,5 @@ public class Type {
         }
         return true;
     }
-    
-    
 
 }

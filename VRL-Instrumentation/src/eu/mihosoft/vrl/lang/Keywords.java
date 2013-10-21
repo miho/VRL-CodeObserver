@@ -63,13 +63,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * mIndicates whether the specified word is a reserved language keyword
+ * Indicates whether the specified word is a reserved language keyword
    (currently only java and groovy are supported).
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
 public class Keywords {
 
-    private static Set<String> keywords = new HashSet<String>();
+    private static final Set<String> keywords = new HashSet<String>();
 
     static {
         
