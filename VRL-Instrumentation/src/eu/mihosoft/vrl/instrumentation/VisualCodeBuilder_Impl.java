@@ -37,6 +37,7 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
     }
 
     public Variable createVariable(Scope scope, IType type) {
+        
         Variable result = scope.createVariable(type);
 
         variables.push(result.getName());
@@ -115,5 +116,13 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
 
     void setIdRequest(IdRequest idRequest) {
         this.idRequest = idRequest;
+    }
+
+    @Override
+    public ClassDeclaration declareClass(Scope scope, IType type, IModifiers modifiers, IExtends extendz, IExtends implementz) {
+        String id = idRequest.request();
+        ClassDeclaration result = new ClassDeclaration_Impl(id, scope, type, modifiers, extendz, implementz);
+        
+        return result;
     }
 }

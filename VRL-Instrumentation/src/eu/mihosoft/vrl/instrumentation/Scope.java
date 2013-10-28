@@ -116,7 +116,9 @@ class ScopeImpl implements Scope {
 
     @Override
     public Variable createVariable(IType type, String varName) {
-        return variables.put(varName, new VariableImpl(this, type, varName, null, false));
+        Variable variable = new VariableImpl(this, type, varName, null, false);
+        variables.put(varName, variable);
+        return variable;
     }
 
     @Override

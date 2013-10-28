@@ -13,7 +13,7 @@ class ClassDeclaration_Impl extends ScopeImpl implements ClassDeclaration {
 
     private final ClassDeclarationMetaData metadata;
 
-    public ClassDeclaration_Impl(String id, Scope parent, Type type, Modifiers modifiers, Extends extendz, Extends implementz) {
+    public ClassDeclaration_Impl(String id, Scope parent, IType type, IModifiers modifiers, IExtends extendz, IExtends implementz) {
         super(id, parent, ScopeType.CLASS, type.getFullClassName(), new ClassDeclarationMetaData(type, modifiers, extendz, implementz));
         metadata = (ClassDeclarationMetaData) getScopeArgs()[0];
     }
@@ -44,7 +44,7 @@ class ClassDeclaration_Impl extends ScopeImpl implements ClassDeclaration {
             throw new IllegalArgumentException("Specified scopetype does not support method declaration: " + this.getType());
         }
 
-        MethodDeclaration methodScope = new MethodDeclaration_Impl(id, parent, returnType, modifiers, params);
+        MethodDeclaration methodScope = new MethodDeclaration_Impl(id, methodName, this, returnType, modifiers, params);
 
         return methodScope;
     }

@@ -13,8 +13,8 @@ class MethodDeclaration_Impl extends ScopeImpl implements MethodDeclaration {
 
     private final MethodDeclarationMetaData metadata;
 
-    public MethodDeclaration_Impl(String id, Scope parent, IType returnType, IModifiers modifiers, IParameters params) {
-        super(id, parent, ScopeType.CLASS, returnType.getFullClassName(), new MethodDeclarationMetaData(returnType, modifiers, params));
+    public MethodDeclaration_Impl(String id, String methodName, Scope parent, IType returnType, IModifiers modifiers, IParameters params) {
+        super(id, parent, ScopeType.CLASS, methodName, new MethodDeclarationMetaData(returnType, modifiers, params));
         metadata = (MethodDeclarationMetaData) getScopeArgs()[0];
     }
 

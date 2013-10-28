@@ -7,6 +7,7 @@ package eu.mihosoft.vrl.instrumentation;
 import eu.mihosoft.vrl.workflow.FlowFactory;
 import eu.mihosoft.vrl.workflow.IdGenerator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,6 @@ import org.codehaus.groovy.transform.GroovyASTTransformation;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.ClassCodeVisitorSupport;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
@@ -28,15 +28,12 @@ import org.codehaus.groovy.ast.expr.DeclarationExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.PropertyExpression;
-import org.codehaus.groovy.ast.expr.StaticMethodCallExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.EmptyStatement;
 import org.codehaus.groovy.ast.stmt.ForStatement;
 import org.codehaus.groovy.ast.stmt.IfStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.ast.stmt.WhileStatement;
-import org.codehaus.groovy.control.Janitor;
-import org.codehaus.groovy.runtime.callsite.StaticMetaClassSite;
 import org.codehaus.groovy.transform.StaticTypesTransformation;
 import org.codehaus.groovy.transform.stc.StaticTypesMarker;
 
@@ -154,7 +151,12 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
         System.out.println("CLASS: " + s.getName());
 
-        currentScope = codeBuilder.createScope(currentScope, ScopeType.CLASS, s.getName(), new Object[0]);
+//        currentScope = codeBuilder.createScope(currentScope, ScopeType.CLASS, s.getName(), new Object[0]);
+        currentScope = codeBuilder.declareClass(currentScope,
+                new Type(s.getName(), false),
+                convertModifiers(s.getModifiers()),
+                convertExtends(s),
+                convertImplements(s));
 
         super.visitClass(s);
 
@@ -166,13 +168,16 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
     @Override
     public void visitMethod(MethodNode s) {
+        
+        System.out.println("m: " + s.getName() + ", parentscope: " + currentScope.getName() + ": " + currentScope.getType());
 
         if (currentScope instanceof ClassDeclaration) {
+
             currentScope = codeBuilder.declareMethod(
-                    (ClassDeclaration) currentScope, convertMethodModifiers(s.getModifiers()), new Type(s.getReturnType().getName(), true),
+                    (ClassDeclaration) currentScope, convertModifiers(s.getModifiers()), new Type(s.getReturnType().getName(), true),
                     s.getName(), convertMethodParameters(s.getParameters()));
         } else {
-            throw new RuntimeException("method cannot be declared here!");
+            throw new RuntimeException("method cannot be declared here! Scope: " + currentScope.getName() + ": " + currentScope.getType());
         }
 
         currentScope.setCode(getCode(s));
@@ -399,7 +404,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         return new Parameters(result);
     }
 
-    private IModifiers convertMethodModifiers(int modifiers) {
+    private IModifiers convertModifiers(int modifiers) {
 
         List<Modifier> modifierList = new ArrayList<>();
 
@@ -419,6 +424,34 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         }
 
         return new Modifiers(modifierList.toArray(new Modifier[modifierList.size()]));
+    }
+
+    private Extends convertExtends(ClassNode n) {
+
+        ClassNode superType = n.getSuperClass();
+
+        Type type = new Type(superType.getName(), false);
+
+        Extends result = new Extends(type);
+
+        return result;
+    }
+
+    private Extends convertImplements(ClassNode n) {
+
+        Collection<ClassNode> interfaces = n.getAllInterfaces();
+
+        Type[] types = new Type[interfaces.size()];
+
+        int i = 0;
+        for (ClassNode classNode : interfaces) {
+            types[i] = new Type(classNode.getName(), false);
+            i++;
+        }
+
+        Extends result = new Extends(types);
+
+        return result;
     }
 }
 
