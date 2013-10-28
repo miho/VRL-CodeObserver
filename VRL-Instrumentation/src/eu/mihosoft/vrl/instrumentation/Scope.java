@@ -82,7 +82,7 @@ class ScopeImpl implements Scope {
                         + " Only " + ScopeImpl.class + " based implementations are supported!");
             }
 
-            if (parent.getType() != ScopeType.CLASS && parent.getType() != ScopeType.NONE) {
+            if (parent.getType() != ScopeType.CLASS && parent.getType() != ScopeType.NONE && parent.getType() != ScopeType.COMPILATION_UNIT) {
                 parent.getControlFlow().callScope(this);
             }
         }
@@ -270,7 +270,7 @@ class ScopeImpl implements Scope {
             }
         }
 
-        boolean isClassOrScript = getType() == ScopeType.CLASS || getType() == ScopeType.NONE;
+        boolean isClassOrScript = getType() == ScopeType.CLASS || getType() == ScopeType.NONE || getType() == ScopeType.COMPILATION_UNIT;
 
         if (isClassOrScript) {
             for (Scope s : getScopes()) {

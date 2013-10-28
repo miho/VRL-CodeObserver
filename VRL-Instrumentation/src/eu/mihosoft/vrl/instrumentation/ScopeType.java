@@ -9,6 +9,7 @@ package eu.mihosoft.vrl.instrumentation;
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
 public enum ScopeType {
+    COMPILATION_UNIT,
     CLASS,
     INTERFACE,
     METHOD,

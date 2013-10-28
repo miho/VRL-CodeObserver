@@ -11,6 +11,8 @@ package eu.mihosoft.vrl.instrumentation;
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
 public interface VisualCodeBuilder {
+    
+    Scope declareCompilationUnit(String name);
 
     void assignConstant(Scope scope, String varName, Object constant);
 

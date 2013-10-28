@@ -27,6 +27,16 @@ public final class Type implements IType {
         validate();
     }
 
+    public Type(String packageName, String shortName) {
+        this(packageName, shortName, false);
+
+        validate();
+    }
+
+    public Type(String fullName) {
+        this(fullName, false);
+    }
+
     public Type(String fullName, boolean isReturnOrParamType) {
 
         if (!VLangUtils.isShortName(fullName)) {

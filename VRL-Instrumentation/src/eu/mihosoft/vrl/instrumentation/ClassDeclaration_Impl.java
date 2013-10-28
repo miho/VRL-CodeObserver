@@ -40,7 +40,7 @@ class ClassDeclaration_Impl extends ScopeImpl implements ClassDeclaration {
 
     @Override
     public MethodDeclaration declareMethod(String id, IModifiers modifiers, IType returnType, String methodName, IParameters params) {
-        if (this.getType() != ScopeType.CLASS && this.getType() != ScopeType.NONE) {
+        if (this.getType() != ScopeType.CLASS && this.getType() != ScopeType.NONE && this.getType() != ScopeType.COMPILATION_UNIT) {
             throw new IllegalArgumentException("Specified scopetype does not support method declaration: " + this.getType());
         }
 

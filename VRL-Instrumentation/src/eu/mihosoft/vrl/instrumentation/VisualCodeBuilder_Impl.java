@@ -26,6 +26,14 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
             return new ScopeImpl(idRequest.request(), null, type, name, args);
         }
     }
+    
+    
+    @Override
+    public Scope declareCompilationUnit(String name) {
+//        IType type = new Type(name); // TODO validation
+        
+        return createScope(null, ScopeType.COMPILATION_UNIT, name, new Object[0]);
+    }
 
     @Override
     public Variable createVariable(Scope scope, IType type, String varName) {
@@ -125,4 +133,5 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
         
         return result;
     }
+
 }
