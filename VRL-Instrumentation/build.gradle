@@ -33,7 +33,13 @@ sourceSets {
         groovy {
             srcDirs = ['src/']
         }
+        
+        resources {
+            srcDirs = ['src/'];
+        }
     }
+    
+    
 
     test {
         groovy {
