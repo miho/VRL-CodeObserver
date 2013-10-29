@@ -64,7 +64,7 @@ public class CodeBuilder {
     private String indentString = "    ";
     private StringBuilder currentLine = new StringBuilder();
     private int cursorPos = 0;
-    private ArrayList<Line> code = new ArrayList<Line>();
+    private ArrayList<Line> code = new ArrayList<>();
 
     /**
      * Returns the indentation string which consists of whitespace characters.
@@ -229,8 +229,8 @@ public class CodeBuilder {
      */
     private static class Line {
 
-        private int indentCount;
-        private String line;
+        private final int indentCount;
+        private final String line;
 
         public Line(String line, int indentCount) {
             this.indentCount = indentCount;

@@ -12,7 +12,7 @@ package eu.mihosoft.vrl.instrumentation;
  */
 public interface VisualCodeBuilder {
     
-    Scope declareCompilationUnit(String name);
+    CompilationUnitDeclaration declareCompilationUnit(String name);
 
     void assignConstant(Scope scope, String varName, Object constant);
 

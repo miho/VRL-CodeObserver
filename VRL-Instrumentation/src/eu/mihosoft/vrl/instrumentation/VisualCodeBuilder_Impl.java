@@ -29,10 +29,12 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
     
     
     @Override
-    public Scope declareCompilationUnit(String name) {
+    public CompilationUnitDeclaration declareCompilationUnit(String name) {
 //        IType type = new Type(name); // TODO validation
         
-        return createScope(null, ScopeType.COMPILATION_UNIT, name, new Object[0]);
+        return new CompilationUnitDeclaration_Impl(idRequest.request(), null, name);
+        
+//        return createScope(null, ScopeType.COMPILATION_UNIT, name, new Object[0]);
     }
 
     @Override
