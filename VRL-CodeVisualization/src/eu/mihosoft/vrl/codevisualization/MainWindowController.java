@@ -285,7 +285,9 @@ public class MainWindowController implements Initializable {
 
     public VFlow scopeToFlow(Scope scope, VFlow parent) {
 
-        boolean isClassOrScript = scope.getType() == ScopeType.CLASS || scope.getType() == ScopeType.NONE;
+        boolean isClassOrScript = scope.getType() == ScopeType.CLASS 
+                || scope.getType() == ScopeType.COMPILATION_UNIT 
+                || scope.getType() == ScopeType.NONE;
 
         VFlow result = parent.newSubFlow();
 
