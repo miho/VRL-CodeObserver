@@ -52,14 +52,18 @@ public class Scope2Code {
 
         MethodDeclaration m1 = builder.declareMethod(myFileClass,
                 new Modifiers(Modifier.PUBLIC), new Type("int"), "m1",
-                new Parameters(new Parameter(new Type("double"), "v1")));
+                new Parameters(new Parameter(new Type("int"), "v1")));
 
-        builder.invokeMethod(m1, "this", m1.getName(), true, "retM1", m1.getVariable("v1"));
-        builder.invokeMethod(m1, "this", m1.getName(), true, "retM1", m1.getVariable("v1"));
+        builder.invokeMethod(m1, "this", m1.getName(), true, "retM1a", m1.getVariable("v1"));
+        builder.invokeMethod(m1, "this", m1.getName(), true, "retM1b", m1.getVariable("v1"));
 
         MethodDeclaration m2 = builder.declareMethod(myFileClass,
                 new Modifiers(Modifier.PUBLIC), new Type("int"), "m2",
-                new Parameters(new Parameter(new Type("double"), "v1")));
+                new Parameters(new Parameter(new Type("double"), "v1"),
+                new Parameter(new Type("my.testpackage.MyFileClass"), "v2")));
+        
+        builder.invokeMethod(m2, "this", m2.getName(), true,
+                "retM2", m2.getVariable("v1"), m2.getVariable("v2"));
 
         return myFile;
     }
@@ -312,7 +316,7 @@ class ClassDeclarationRenderer implements CodeRenderer<ClassDeclaration> {
         }
 
         cb.decIndentation();
-        cb.newLine().append("}").newLine();
+        cb.append("}").newLine();
     }
 
     private void createDeclaredVariables(ClassDeclaration cd, CodeBuilder cb) {

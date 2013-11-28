@@ -5,9 +5,6 @@
  */
 package eu.mihosoft.vrl.instrumentation;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
@@ -28,6 +25,7 @@ class MethodDeclaration_Impl extends ScopeImpl implements MethodDeclaration {
 
             createVariable(p.getType(), p.getName());
         }
+        
     }
 
     @Override

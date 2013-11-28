@@ -19,6 +19,8 @@ class ClassDeclaration_Impl extends ScopeImpl implements ClassDeclaration {
     public ClassDeclaration_Impl(String id, Scope parent, IType type, IModifiers modifiers, IExtends extendz, IExtends implementz) {
         super(id, parent, ScopeType.CLASS, type.getFullClassName(), new ClassDeclarationMetaData(type, modifiers, extendz, implementz));
         metadata = (ClassDeclarationMetaData) getScopeArgs()[0];
+        
+        createVariable(getClassType(), "this");
     }
 
     @Override
