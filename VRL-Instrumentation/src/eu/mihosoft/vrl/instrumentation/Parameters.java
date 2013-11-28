@@ -16,15 +16,15 @@ import java.util.List;
  */
 public final class Parameters implements IParameters {
 
-    private final List<Parameter> arguments = new ArrayList<>();
-    private List<Parameter> readOnlyParams;
+    private final List<IParameter> arguments = new ArrayList<>();
+    private List<IParameter> readOnlyParams;
 
-    public Parameters(Parameter... params) {
+    public Parameters(IParameter... params) {
         this.arguments.addAll(Arrays.asList(params));
     }
 
     @Override
-    public List<Parameter> getParamenters() {
+    public List<IParameter> getParamenters() {
         if (readOnlyParams == null) {
             readOnlyParams = Collections.unmodifiableList(arguments);
         }

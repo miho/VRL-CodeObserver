@@ -6,6 +6,8 @@
 
 package eu.mihosoft.vrl.instrumentation;
 
+import java.util.List;
+
 /**
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
@@ -15,6 +17,7 @@ public interface MethodDeclaration extends Scope{
     IModifiers getModifiers();
 
     IParameters getParameters();
+    Variable getParameterAsVariable(IParameter p);
 
     IType getReturnType();
     

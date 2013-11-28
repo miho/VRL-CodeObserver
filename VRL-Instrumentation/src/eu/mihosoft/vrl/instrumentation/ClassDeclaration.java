@@ -6,6 +6,8 @@
 
 package eu.mihosoft.vrl.instrumentation;
 
+import java.util.List;
+
 /**
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
@@ -19,6 +21,8 @@ public interface ClassDeclaration extends Scope {
     IExtends getExtends();
 
     IExtends getImplements();
+    
+    List<MethodDeclaration> getDeclaredMethods();
 
     MethodDeclaration declareMethod(String id, IModifiers modifiers, IType returnType, String methodName, IParameters params);
     

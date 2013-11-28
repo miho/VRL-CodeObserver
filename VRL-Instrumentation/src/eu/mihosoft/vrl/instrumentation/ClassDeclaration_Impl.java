@@ -5,6 +5,9 @@
  */
 package eu.mihosoft.vrl.instrumentation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
@@ -37,6 +40,11 @@ class ClassDeclaration_Impl extends ScopeImpl implements ClassDeclaration {
     public IExtends getImplements() {
         return metadata.getImplementz();
     }
+    
+    @Override
+    public List<MethodDeclaration> getDeclaredMethods() {
+        return metadata.getDeclaredMethods();
+    }
 
     @Override
     public MethodDeclaration declareMethod(String id, IModifiers modifiers, IType returnType, String methodName, IParameters params) {
@@ -46,6 +54,8 @@ class ClassDeclaration_Impl extends ScopeImpl implements ClassDeclaration {
 
         MethodDeclaration methodScope = new MethodDeclaration_Impl(id, methodName, this, returnType, modifiers, params);
 
+        metadata.getDeclaredMethods().add(methodScope);
+        
         return methodScope;
     }
 }
@@ -56,6 +66,7 @@ final class ClassDeclarationMetaData {
     private final IModifiers modifiers;
     private final IExtends extendz;
     private final IExtends implementz;
+    private final List<MethodDeclaration> declaredMethods = new ArrayList<>();
 
     public ClassDeclarationMetaData(IType type, IModifiers modifiers, IExtends extendz, IExtends implementz) {
         this.type = type;
@@ -90,6 +101,13 @@ final class ClassDeclarationMetaData {
      */
     public IModifiers getModifiers() {
         return modifiers;
+    }
+
+    /**
+     * @return the declaredMethods
+     */
+    public List<MethodDeclaration> getDeclaredMethods() {
+        return declaredMethods;
     }
 
 }

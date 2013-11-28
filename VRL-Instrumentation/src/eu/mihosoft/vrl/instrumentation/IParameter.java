@@ -6,14 +6,20 @@
 
 package eu.mihosoft.vrl.instrumentation;
 
-import java.util.List;
-
 /**
  *
- * @author Michael Hoffer <info@michaelhoffer.de>
+ * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public interface IParameters {
+public interface IParameter {
 
-    List<IParameter> getParamenters();
+    /**
+     * @return the name
+     */
+    String getName();
+
+    /**
+     * @return the type
+     */
+    IType getType();
     
 }

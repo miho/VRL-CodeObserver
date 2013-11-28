@@ -40,7 +40,8 @@ public final class Type implements IType {
     public Type(String fullName, boolean isReturnOrParamType) {
 
         if (!VLangUtils.isShortName(fullName)) {
-            this.packageName = VLangUtils.packageNameFromFullClassName(fullName);
+            this.packageName = VLangUtils.slashToDot(
+                    VLangUtils.packageNameFromFullClassName(fullName));
             this.shortName = VLangUtils.shortNameFromFullClassName(fullName);
         } else {
             this.packageName = "";

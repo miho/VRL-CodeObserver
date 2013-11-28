@@ -4,6 +4,8 @@
  */
 package eu.mihosoft.vrl.instrumentation;
 
+import eu.mihosoft.vrl.workflow.FlowFactory;
+import eu.mihosoft.vrl.workflow.IdGenerator;
 import java.util.Stack;
 
 /**
@@ -13,7 +15,15 @@ import java.util.Stack;
 public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
 
     private final Stack<String> variables = new Stack<>();
-    private IdRequest idRequest;
+    private IdRequest idRequest = new IdRequest() {
+        
+        private IdGenerator generator = FlowFactory.newIdGenerator();
+
+        @Override
+        public String request() {
+            return generator.newId();
+        }
+    };
 
     String popVariable() {
         return variables.pop();
@@ -131,6 +141,7 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
     @Override
     public ClassDeclaration declareClass(Scope scope, IType type, IModifiers modifiers, IExtends extendz, IExtends implementz) {
         String id = idRequest.request();
+        
         ClassDeclaration result = new ClassDeclaration_Impl(id, scope, type, modifiers, extendz, implementz);
         
         return result;

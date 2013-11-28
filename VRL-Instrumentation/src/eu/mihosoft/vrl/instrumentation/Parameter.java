@@ -11,7 +11,7 @@ import eu.mihosoft.vrl.lang.VLangUtils;
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
  */
-public class Parameter {
+public class Parameter implements IParameter {
 
     private final Type type;
     private final String name;
@@ -32,6 +32,7 @@ public class Parameter {
     /**
      * @return the type
      */
+    @Override
     public Type getType() {
         return type;
     }
@@ -39,6 +40,7 @@ public class Parameter {
     /**
      * @return the name
      */
+    @Override
     public String getName() {
         return name;
     }

@@ -5,10 +5,12 @@
  */
 package eu.mihosoft.vrl.instrumentation;
 
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STGroupString;
+//import org.stringtemplate.v4.ST;
+import java.util.HashMap;
+import java.util.Map;
 
+//import org.stringtemplate.v4.STGroup;
+//import org.stringtemplate.v4.STGroupString;
 /**
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
@@ -29,21 +31,91 @@ public class Scope2Code {
     }
 
     public static void main(String[] args) {
-//        Invocation e = new InvocationImpl("1", "obj1", "m1", false, true, "unknown", new VariableImpl(null, new Type("java.lang.Class<?>"), "myVar", null, false), new VariableImpl(null, new Type("int"), "3", null, true));
+        CompilationUnitDeclaration scope = demoScope();
 
-//        InvocationCodeRenderer invocationCodeRenderer = new InvocationCodeRenderer();
-//        System.out.println(invocationCodeRenderer.render(e));
+        CompilationUnitRenderer renderer
+                = new CompilationUnitRenderer(
+                        new ClassDeclarationRenderer(
+                                new MethodDeclarationRenderer(
+                                        new InvocationCodeRenderer())));
+
+        System.out.println(renderer.render(scope));
+    }
+
+    public static CompilationUnitDeclaration demoScope() {
+        VisualCodeBuilder builder = new VisualCodeBuilder_Impl();
+
+        CompilationUnitDeclaration myFile = builder.declareCompilationUnit("MyFile.java");
+        ClassDeclaration myFileClass = builder.declareClass(myFile,
+                new Type("my.testpackage.MyFileClass"),
+                new Modifiers(Modifier.PUBLIC), new Extends(), new Extends());
+
+        MethodDeclaration m1 = builder.declareMethod(myFileClass,
+                new Modifiers(Modifier.PUBLIC), new Type("int"), "m1",
+                new Parameters(new Parameter(new Type("double"), "v1")));
+
+        builder.invokeMethod(m1, "this", m1.getName(), true, "retM1", m1.getVariable("v1"));
+        builder.invokeMethod(m1, "this", m1.getName(), true, "retM1", m1.getVariable("v1"));
+
+        MethodDeclaration m2 = builder.declareMethod(myFileClass,
+                new Modifiers(Modifier.PUBLIC), new Type("int"), "m2",
+                new Parameters(new Parameter(new Type("double"), "v1")));
+
+        return myFile;
+    }
+
+}
+
+final class Utils {
+
+    private static Map<Modifier, String> modifierNames = new HashMap<>();
+
+    private Utils() {
+        throw new AssertionError();
+    }
+
+    static {
+        modifierNames.put(Modifier.ABSTRACT, "abstract");
+        modifierNames.put(Modifier.FINAL, "final");
+
+        modifierNames.put(Modifier.PRIVATE, "private");
+        modifierNames.put(Modifier.PROTECTED, "protected");
+
+        modifierNames.put(Modifier.PUBLIC, "public");
+        modifierNames.put(Modifier.STATIC, "static");
+    }
+
+    public static String modifierToName(Modifier m) {
+
+        return modifierNames.get(m);
     }
 }
 
 interface ScopeRenderer extends CodeRenderer<Scope> {
 
+    public void setCompilationUnitRenderer(CodeRenderer<CompilationUnitDeclaration> renderer);
+
+    public void setClassDeclarationRenderer(CodeRenderer<ClassDeclaration> renderer);
+
+    public void setMethodDeclarationRenderer(CodeRenderer<MethodDeclaration> renderer);
+
     public void setInvocationRenderer(CodeRenderer<Invocation> renderer);
+
+    public void setForLoopRenderer(CodeRenderer<ForDeclaration> renderer);
+
+    public void setWhileLoopRenderer(CodeRenderer<WhileDeclaration> renderer);
+
+//    public void setIfStatementRenderer(CodeRenderer)
 }
 
 class ScopeRendererImpl implements ScopeRenderer {
 
+    private CodeRenderer<CompilationUnitDeclaration> compilationUnitRenderer;
+    private CodeRenderer<ClassDeclaration> classDeclarationRenderer;
+    private CodeRenderer<MethodDeclaration> methodDeclarationRenderer;
     private CodeRenderer<Invocation> invocationRenderer;
+    private CodeRenderer<ForDeclaration> forLoopRenderer;
+    private CodeRenderer<WhileDeclaration> whileLoopRenderer;
 
     @Override
     public void setInvocationRenderer(CodeRenderer<Invocation> renderer) {
@@ -88,6 +160,46 @@ class ScopeRendererImpl implements ScopeRenderer {
         throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
     }
 
+    /**
+     * @param compilationUnitRenderer the compilationUnitRenderer to set
+     */
+    @Override
+    public void setCompilationUnitRenderer(CodeRenderer<CompilationUnitDeclaration> compilationUnitRenderer) {
+        this.compilationUnitRenderer = compilationUnitRenderer;
+    }
+
+    /**
+     * @param classDeclarationRenderer the classDeclarationRenderer to set
+     */
+    @Override
+    public void setClassDeclarationRenderer(CodeRenderer<ClassDeclaration> classDeclarationRenderer) {
+        this.classDeclarationRenderer = classDeclarationRenderer;
+    }
+
+    /**
+     * @param methodDeclarationRenderer the methodDeclarationRenderer to set
+     */
+    @Override
+    public void setMethodDeclarationRenderer(CodeRenderer<MethodDeclaration> methodDeclarationRenderer) {
+        this.methodDeclarationRenderer = methodDeclarationRenderer;
+    }
+
+    /**
+     * @param forLoopRenderer the forLoopRenderer to set
+     */
+    @Override
+    public void setForLoopRenderer(CodeRenderer<ForDeclaration> forLoopRenderer) {
+        this.forLoopRenderer = forLoopRenderer;
+    }
+
+    /**
+     * @param whileLoopRenderer the whileLoopRenderer to set
+     */
+    @Override
+    public void setWhileLoopRenderer(CodeRenderer<WhileDeclaration> whileLoopRenderer) {
+        this.whileLoopRenderer = whileLoopRenderer;
+    }
+
 }
 
 class InvocationCodeRenderer implements CodeRenderer<Invocation> {
@@ -98,7 +210,7 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
 //    );
 //
 //    private static final ST invocation = group.getInstanceOf("invocation");
-    public InvocationCodeRenderer(CodeRenderer<Scope> scopeRenderer) {
+    public InvocationCodeRenderer() {
     }
 
 //    @Override
@@ -131,7 +243,7 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
             renderParams(e, cb);
             cb.append(");");
 
-        } else if (e.isScope()) {
+        } else if (!e.isScope()) {
             cb.
                     append(e.getVarName()).
                     append(".").
@@ -139,6 +251,8 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
             renderParams(e, cb);
 
             cb.append(");");
+        } else {
+            // scope
         }
 
         cb.newLine();
@@ -160,6 +274,195 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
                 cb.append(v.getName());
             }
         }
+    }
+}
+
+class ClassDeclarationRenderer implements CodeRenderer<ClassDeclaration> {
+
+    private CodeRenderer<MethodDeclaration> methodDeclarationRenderer;
+
+    public ClassDeclarationRenderer(CodeRenderer<MethodDeclaration> methodDeclarationRenderer) {
+        this.methodDeclarationRenderer = methodDeclarationRenderer;
+    }
+
+    @Override
+    public String render(ClassDeclaration cd) {
+        CodeBuilder cb = new CodeBuilder();
+
+        render(cd, cb);
+
+        return cb.getCode();
+    }
+
+    @Override
+    public void render(ClassDeclaration cd, CodeBuilder cb) {
+
+        createModifiers(cd, cb);
+        cb.append("class ");
+        cb.append(cd.getName());
+        createExtends(cd, cb);
+        createImplements(cd, cb);
+        cb.append(" {").newLine();
+        cb.incIndentation();
+
+        createDeclaredVariables(cd, cb);
+
+        for (MethodDeclaration md : cd.getDeclaredMethods()) {
+            methodDeclarationRenderer.render(md, cb);
+        }
+
+        cb.decIndentation();
+        cb.newLine().append("}").newLine();
+    }
+
+    private void createDeclaredVariables(ClassDeclaration cd, CodeBuilder cb) {
+        for (Variable v : cd.getVariables()) {
+            cb.newLine().append(v.getType().getFullClassName()).
+                    append(" ").append(v.getName()).append(";");
+        }
+    }
+
+    private void createModifiers(ClassDeclaration cd, CodeBuilder cb) {
+        for (Modifier m : cd.getClassModifiers().getModifiers()) {
+            cb.append(Utils.modifierToName(m)).append(" ");
+        }
+    }
+
+    private void createExtends(ClassDeclaration cd, CodeBuilder cb) {
+
+        if (cd.getExtends().getTypes().isEmpty()) {
+            return;
+        }
+
+        cb.append(" extends ");
+
+        boolean first = true;
+
+        for (IType type : cd.getExtends().getTypes()) {
+            if (first) {
+                first = false;
+            } else {
+                cb.append(", ");
+            }
+            cb.append(type.getFullClassName());
+        }
+    }
+
+    private void createImplements(ClassDeclaration cd, CodeBuilder cb) {
+
+        if (cd.getImplements().getTypes().isEmpty()) {
+            return;
+        }
+
+        cb.append(" implements ");
+
+        boolean first = true;
+
+        for (IType type : cd.getExtends().getTypes()) {
+            if (first) {
+                first = false;
+            } else {
+                cb.append(", ");
+            }
+            cb.append(type.getFullClassName());
+        }
+    }
+}
+
+class MethodDeclarationRenderer implements CodeRenderer<MethodDeclaration> {
+
+    private CodeRenderer<Invocation> invocationRenderer;
+
+    public MethodDeclarationRenderer(CodeRenderer<Invocation> invocationRenderer) {
+        this.invocationRenderer = invocationRenderer;
+    }
+
+    @Override
+    public String render(MethodDeclaration e) {
+        CodeBuilder cb = new CodeBuilder();
+
+        render(e, cb);
+
+        return cb.toString();
+    }
+
+    @Override
+    public void render(MethodDeclaration e, CodeBuilder cb) {
+
+        createModifiers(e, cb);
+        cb.append(e.getReturnType().getFullClassName());
+        cb.append(" ").append(e.getName()).append("(");
+        renderParams(e, cb);
+        cb.append(") {").newLine();
+        cb.incIndentation();
+
+        for (Invocation i : e.getControlFlow().getInvocations()) {
+            invocationRenderer.render(i, cb);
+        }
+
+        cb.decIndentation().append("}").newLine();
+    }
+
+    private void createModifiers(MethodDeclaration md, CodeBuilder cb) {
+        for (Modifier m : md.getModifiers().getModifiers()) {
+            cb.append(Utils.modifierToName(m)).append(" ");
+        }
+    }
+
+    private void renderParams(MethodDeclaration e, CodeBuilder cb) {
+        boolean firstCall = true;
+        for (IParameter v : e.getParameters().getParamenters()) {
+
+            if (firstCall) {
+                firstCall = false;
+            } else {
+                cb.append(", ");
+            }
+
+            cb.append(v.getType().getFullClassName()).append(" ").append(v.getName());
+        }
+    }
+}
+
+class CompilationUnitRenderer implements CodeRenderer<CompilationUnitDeclaration> {
+
+    private CodeRenderer<ClassDeclaration> classDeclarationRenderer;
+
+    public CompilationUnitRenderer() {
+    }
+
+    public CompilationUnitRenderer(CodeRenderer<ClassDeclaration> classDeclarationRenderer) {
+        this.classDeclarationRenderer = classDeclarationRenderer;
+    }
+
+    @Override
+    public String render(CompilationUnitDeclaration e) {
+        CodeBuilder cb = new CodeBuilder();
+
+        render(e, cb);
+
+        return cb.getCode();
+    }
+
+    @Override
+    public void render(CompilationUnitDeclaration e, CodeBuilder cb) {
+        for (ClassDeclaration cd : e.getDeclaredClasses()) {
+            classDeclarationRenderer.render(cd, cb);
+        }
+    }
+
+    /**
+     * @return the classDeclarationRenderer
+     */
+    public CodeRenderer<ClassDeclaration> getClassDeclarationRenderer() {
+        return classDeclarationRenderer;
+    }
+
+    /**
+     * @param classDeclarationRenderer the classDeclarationRenderer to set
+     */
+    public void setClassDeclarationRenderer(CodeRenderer<ClassDeclaration> classDeclarationRenderer) {
+        this.classDeclarationRenderer = classDeclarationRenderer;
     }
 }
 

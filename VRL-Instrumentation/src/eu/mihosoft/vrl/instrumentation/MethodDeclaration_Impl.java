@@ -5,6 +5,9 @@
  */
 package eu.mihosoft.vrl.instrumentation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
@@ -16,21 +19,35 @@ class MethodDeclaration_Impl extends ScopeImpl implements MethodDeclaration {
     public MethodDeclaration_Impl(String id, String methodName, Scope parent, IType returnType, IModifiers modifiers, IParameters params) {
         super(id, parent, ScopeType.CLASS, methodName, new MethodDeclarationMetaData(returnType, modifiers, params));
         metadata = (MethodDeclarationMetaData) getScopeArgs()[0];
+
+        createParamVariables();
+    }
+
+    private void createParamVariables() {
+        for (IParameter p : metadata.getParams().getParamenters()) {
+
+            createVariable(p.getType(), p.getName());
+        }
     }
 
     @Override
     public IType getReturnType() {
-        return null;
+        return metadata.getType();
     }
 
     @Override
     public IModifiers getModifiers() {
-        return null;
+        return metadata.getModifiers();
     }
 
     @Override
     public IParameters getParameters() {
-        return null;
+        return metadata.getParams();
+    }
+
+    @Override
+    public Variable getParameterAsVariable(IParameter p) {
+        return getVariable(p.getName());
     }
 }
 

@@ -14,6 +14,6 @@ import java.util.List;
  */
 public interface IExtends {
 
-    List<Type> getTypes();
+    List<IType> getTypes();
     
 }
