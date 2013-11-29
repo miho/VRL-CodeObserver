@@ -30,6 +30,8 @@ public interface Scope extends CodeEntity {
     public Variable getVariable(String name);
 
     public Variable createVariable(IType type, String varName);
+    
+    public Variable createStaticVariable(IType type);
 
     public void assignConstant(String varName, Object constant);
 
@@ -71,7 +73,7 @@ class ScopeImpl implements Scope {
         this.type = type;
         this.name = name;
         this.scopeArgs = scopeArgs;
-        this.controlFlow = new ControlFlowImpl();
+        this.controlFlow = new ControlFlowImpl(this);
         this.dataFlow = new DataFlowImpl();
 
         if (parent != null) {
@@ -134,6 +136,13 @@ class ScopeImpl implements Scope {
         }
 
         return createVariable(type, varName);
+    }
+    
+    @Override
+    public Variable createStaticVariable(IType type) {
+        Variable variable = VariableImpl.createStaticVar(parent, type);
+        variables.put(variable.getName(), variable);
+        return variable;
     }
 
     @Override
@@ -279,6 +288,7 @@ class ScopeImpl implements Scope {
         }
     }
 
+    @Override
     public Scope createScope(String id, ScopeType type, String name, Object[] args) {
         Scope scope = new ScopeImpl(id, this, type, name, args);
 

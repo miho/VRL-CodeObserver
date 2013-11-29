@@ -106,7 +106,7 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
     }
 
     @Override
-    public void createInstance(Scope scope, Type type, String varName, Variable... args) {
+    public void createInstance(Scope scope, IType type, String varName, Variable... args) {
 
         String id = idRequest.request();
 
@@ -120,6 +120,15 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
         String id = idRequest.request();
 
         Invocation result = scope.getControlFlow().callMethod(id, varName, mName, isVoid, retValName, args);
+
+        return result;
+    }
+    
+    @Override
+    public Invocation invokeStaticMethod(Scope scope, IType type, String mName, boolean isVoid, String retValName, Variable... args) {
+        String id = idRequest.request();
+
+        Invocation result = scope.getControlFlow().callStaticMethod(id, type, mName, isVoid, retValName, args);
 
         return result;
     }

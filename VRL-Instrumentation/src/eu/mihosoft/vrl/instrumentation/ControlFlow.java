@@ -13,9 +13,11 @@ import java.util.List;
  */
 public interface ControlFlow {
 
-    public Invocation createInstance(String id, Type type, String varName, Variable... args);
+    public Invocation createInstance(String id, IType type, String varName, Variable... args);
 
     public Invocation callMethod(String id, String varName, String mName, boolean isVoid, String retValueName, Variable... args);
+    
+    public Invocation callStaticMethod(String id, IType type, String mName, boolean isVoid, String retValueName, Variable... args);
 
     public ScopeInvocation callScope(Scope scope);
 
@@ -25,17 +27,32 @@ public interface ControlFlow {
 class ControlFlowImpl implements ControlFlow {
 
     private final List<Invocation> invocations = new ArrayList<>();
+    
+    private final Scope parent;
+
+    public ControlFlowImpl(Scope parent) {
+        this.parent = parent;
+    }
+
+    
 
     @Override
-    public Invocation createInstance(String id, Type type, String varName, Variable... args) {
-        Invocation result = new InvocationImpl(id, type.getFullClassName(), "<init>", true, false, varName, args);
+    public Invocation createInstance(String id, IType type, String varName, Variable... args) {
+        Invocation result = new InvocationImpl(parent,id, type.getFullClassName(), "<init>", true, false, true, varName, args);
         getInvocations().add(result);
         return result;
     }
 
     @Override
     public Invocation callMethod(String id, String varName, String mName, boolean isVoid, String retValueName, Variable... args) {
-        Invocation result = new InvocationImpl(id, varName, mName, false, isVoid, retValueName, args);
+        Invocation result = new InvocationImpl(parent, id, varName, mName, false, isVoid, false, retValueName, args);
+        getInvocations().add(result);
+        return result;
+    }
+    
+    @Override
+    public Invocation callStaticMethod(String id, IType type, String mName, boolean isVoid, String retValueName, Variable... args) {
+        Invocation result = new InvocationImpl(parent, id, type.getFullClassName(), mName, false, isVoid, true, retValueName, args);
         getInvocations().add(result);
         return result;
     }

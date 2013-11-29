@@ -242,14 +242,14 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
 
         if (e.isConstructor()) {
             cb.append("new ").append(e.getReturnValueName()).
-                    append("= new").append(e.getVarName()).
+                    append("= new").append(e.getVariableName()).
                     append("(");
             renderParams(e, cb);
             cb.append(");");
 
         } else if (!e.isScope()) {
             cb.
-                    append(e.getVarName()).
+                    append(e.getVariableName()).
                     append(".").
                     append(e.getMethodName()).append("(");
             renderParams(e, cb);
