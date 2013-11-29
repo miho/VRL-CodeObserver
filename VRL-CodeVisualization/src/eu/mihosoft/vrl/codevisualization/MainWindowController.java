@@ -5,16 +5,18 @@
 package eu.mihosoft.vrl.codevisualization;
 
 import eu.mihosoft.vrl.instrumentation.CodeEntity;
+import eu.mihosoft.vrl.instrumentation.CompilationUnitDeclaration;
 import eu.mihosoft.vrl.instrumentation.DataFlow;
 import eu.mihosoft.vrl.instrumentation.DataRelation;
 import eu.mihosoft.vrl.instrumentation.Invocation;
 import eu.mihosoft.vrl.instrumentation.Scope;
+import eu.mihosoft.vrl.instrumentation.Scope2Code;
 import eu.mihosoft.vrl.instrumentation.ScopeInvocation;
 import eu.mihosoft.vrl.instrumentation.ScopeType;
 import eu.mihosoft.vrl.instrumentation.UIBinding;
 import eu.mihosoft.vrl.instrumentation.Variable;
-import eu.mihosoft.vrl.worflow.layout.Layout;
-import eu.mihosoft.vrl.worflow.layout.LayoutFactory;
+//import eu.mihosoft.vrl.worflow.layout.Layout;
+//import eu.mihosoft.vrl.worflow.layout.LayoutFactory;
 import eu.mihosoft.vrl.workflow.Connector;
 import eu.mihosoft.vrl.workflow.FlowFactory;
 import eu.mihosoft.vrl.workflow.VFlow;
@@ -119,14 +121,14 @@ public class MainWindowController implements Initializable {
     private void saveDocument(boolean askForLocationIfAlreadyOpened) {
 
         if (askForLocationIfAlreadyOpened || currentDocument == null) {
-            FileChooser.ExtensionFilter mdFilter =
-                    new FileChooser.ExtensionFilter("Text Files (*.groovy, *.txt)", "*.groovy", "*.txt");
+            FileChooser.ExtensionFilter mdFilter
+                    = new FileChooser.ExtensionFilter("Text Files (*.groovy, *.txt)", "*.groovy", "*.txt");
 
-            FileChooser.ExtensionFilter allFilesfilter =
-                    new FileChooser.ExtensionFilter("All Files (*.*)", "*.*");
+            FileChooser.ExtensionFilter allFilesfilter
+                    = new FileChooser.ExtensionFilter("All Files (*.*)", "*.*");
 
-            currentDocument =
-                    FileChooserBuilder.create().title("Save Groovy File").
+            currentDocument
+                    = FileChooserBuilder.create().title("Save Groovy File").
                     extensionFilters(mdFilter, allFilesfilter).build().
                     showSaveDialog(null).getAbsoluteFile();
         }
@@ -158,23 +160,23 @@ public class MainWindowController implements Initializable {
 
         try {
             if (f == null) {
-                FileChooser.ExtensionFilter mdFilter =
-                        new FileChooser.ExtensionFilter("Text Files (*.groovy, *.txt)", "*.groovy", "*.txt");
+                FileChooser.ExtensionFilter mdFilter
+                        = new FileChooser.ExtensionFilter("Text Files (*.groovy, *.txt)", "*.groovy", "*.txt");
 
-                FileChooser.ExtensionFilter allFilesfilter =
-                        new FileChooser.ExtensionFilter("All Files (*.*)", "*.*");
+                FileChooser.ExtensionFilter allFilesfilter
+                        = new FileChooser.ExtensionFilter("All Files (*.*)", "*.*");
 
-                currentDocument =
-                        FileChooserBuilder.create().title("Open Groovy File").
+                currentDocument
+                        = FileChooserBuilder.create().title("Open Groovy File").
                         extensionFilters(mdFilter, allFilesfilter).build().
                         showOpenDialog(null).getAbsoluteFile();
             } else {
                 currentDocument = f;
             }
 
-            List<String> lines =
-                    Files.readAllLines(Paths.get(currentDocument.getAbsolutePath()),
-                    Charset.defaultCharset());
+            List<String> lines
+                    = Files.readAllLines(Paths.get(currentDocument.getAbsolutePath()),
+                            Charset.defaultCharset());
 
             String document = "";
 
@@ -183,6 +185,9 @@ public class MainWindowController implements Initializable {
             }
 
             editor.setText(document);
+            
+//            CompilationUnitDeclaration cu = Scope2Code.demoScope();
+//            editor.setText(Scope2Code.getCode(cu));
 
             updateView();
 
@@ -199,13 +204,13 @@ public class MainWindowController implements Initializable {
             return;
         }
 
+
         UIBinding.scopes.clear();
 
         GroovyClassLoader gcl = new GroovyClassLoader();
         gcl.parseClass(editor.getText());
 
         System.out.println("UPDATE UI");
-
 
         flow.clear();
 
@@ -230,9 +235,8 @@ public class MainWindowController implements Initializable {
 
         flow.setSkinFactories(skinFactory);
 
-        Layout layout = LayoutFactory.newDefaultLayout();
-        layout.doLayout(flow);
-
+//        Layout layout = LayoutFactory.newDefaultLayout();
+//        layout.doLayout(flow);
     }
 
     public void dataFlowToFlow(Scope scope, VFlow parent) {
@@ -243,39 +247,36 @@ public class MainWindowController implements Initializable {
         for (Invocation i : scope.getControlFlow().getInvocations()) {
 
 //            Variable retValue = scope.getVariable(i.getReturnValueName());
-
             List<DataRelation> relations = dataflow.getRelationsForReceiver(i);
-            
+
             System.out.println("relations: " + relations.size());
 
             for (DataRelation dataRelation : relations) {
-                
-                
+
                 VNode sender = invocationNodes.get(dataRelation.getSender());
                 VNode receiver = invocationNodes.get(dataRelation.getReceiver());
-                
+
                 System.out.println("SENDER: " + sender.getId() + ", receiver: " + receiver.getId());
-                
+
                 Connector senderConnector = sender.getConnector("4");
 
-                String retValueName =
-                        dataRelation.getSender().getReturnValueName();
-                
+                String retValueName
+                        = dataRelation.getSender().getReturnValueName();
+
 //                 parent.connect(
 //                                senderConnector, receiver.getConnector(""));
-
                 int inputIndex = 0;
 
                 for (Variable var : dataRelation.getReceiver().getArguments()) {
                     System.out.println("var: " + var);
                     if (var.getName().equals(retValueName)) {
-                        Connector receiverConnector =
-                                receiver.getConnector("3");
+                        Connector receiverConnector
+                                = receiver.getConnector("3");
 
                         parent.connect(
                                 senderConnector, receiverConnector);
 
-                        System.out.println( inputIndex + "connect: " + senderConnector.getType()+":"+senderConnector.isOutput()+ " -> " + receiverConnector.getType()+ ":" + receiverConnector.isInput());
+                        System.out.println(inputIndex + "connect: " + senderConnector.getType() + ":" + senderConnector.isOutput() + " -> " + receiverConnector.getType() + ":" + receiverConnector.isInput());
                     }
                     inputIndex++;
                 }
@@ -285,8 +286,8 @@ public class MainWindowController implements Initializable {
 
     public VFlow scopeToFlow(Scope scope, VFlow parent) {
 
-        boolean isClassOrScript = scope.getType() == ScopeType.CLASS 
-                || scope.getType() == ScopeType.COMPILATION_UNIT 
+        boolean isClassOrScript = scope.getType() == ScopeType.CLASS
+                || scope.getType() == ScopeType.COMPILATION_UNIT
                 || scope.getType() == ScopeType.NONE;
 
         VFlow result = parent.newSubFlow();
@@ -318,10 +319,10 @@ public class MainWindowController implements Initializable {
 
                 ScopeInvocation sI = (ScopeInvocation) i;
                 n = scopeToFlow(sI.getScope(), result).getModel();
-                
+
             } else {
                 n = result.newNode();
-                String mTitle = "" + i.getVarName() + "." + i.getMethodName() + "(): " + i.getId();
+                String mTitle = "" + i.getVariableName() + "." + i.getMethodName() + "(): " + i.getId();
                 n.setTitle(mTitle);
 
                 invocationNodes.put(i, n);
@@ -355,7 +356,7 @@ public class MainWindowController implements Initializable {
                 scopeToFlow(s, result);
             }
         }
-        
+
         dataFlowToFlow(scope, result);
 
         return result;
