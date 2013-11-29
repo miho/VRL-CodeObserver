@@ -169,7 +169,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
     @Override
     public void visitMethod(MethodNode s) {
-        
+
         System.out.println("m: " + s.getName() + ", parentscope: " + currentScope.getName() + ": " + currentScope.getType());
 
         if (currentScope instanceof ClassDeclaration) {
@@ -276,7 +276,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         ArgumentListExpression args = (ArgumentListExpression) s.getArguments();
         Variable[] arguments = convertArguments(args);
 
-        String objectName = "noname";
+        String objectName = null;
 
         boolean isIdCall = false;
 
@@ -314,9 +314,15 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         }
 
         if (!isIdCall) {
-            codeBuilder.invokeMethod(currentScope, objectName, s.getMethod().getText(), isVoid,
-                    returnValueName, arguments).setCode(getCode(s));
+            if (objectName != null) {
+                codeBuilder.invokeMethod(currentScope, objectName, s.getMethod().getText(), isVoid,
+                        returnValueName, arguments).setCode(getCode(s));
+            } else if (s.getMethod().getText().equals("println")) {
+                codeBuilder.invokeStaticMethod(currentScope, new Type("System.out"), s.getMethod().getText(), isVoid,
+                        returnValueName, arguments).setCode(getCode(s));
+            }
         }
+        
 
     }
 
