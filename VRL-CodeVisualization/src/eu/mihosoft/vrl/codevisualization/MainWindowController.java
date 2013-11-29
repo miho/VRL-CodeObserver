@@ -174,17 +174,7 @@ public class MainWindowController implements Initializable {
                 currentDocument = f;
             }
 
-            List<String> lines
-                    = Files.readAllLines(Paths.get(currentDocument.getAbsolutePath()),
-                            Charset.defaultCharset());
-
-            String document = "";
-
-            for (String l : lines) {
-                document += l + "\n";
-            }
-
-            editor.setText(document);
+            editor.setText(new String(Files.readAllBytes(Paths.get(currentDocument.getAbsolutePath())), "UTF-8"));
             
 //            CompilationUnitDeclaration cu = Scope2Code.demoScope();
 //            editor.setText(Scope2Code.getCode(cu));
