@@ -18,4 +18,6 @@ public interface CompilationUnitDeclaration extends Scope{
     public String getFileName();
     
     public List<ClassDeclaration> getDeclaredClasses();
+    
+    public String getPackageName();
 }

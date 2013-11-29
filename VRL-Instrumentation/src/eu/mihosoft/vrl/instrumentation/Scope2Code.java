@@ -17,17 +17,39 @@ import java.util.Map;
  */
 public class Scope2Code {
 
-    private final Scope scope;
+    public static String getCode(CompilationUnitDeclaration scope) {
 
-    public Scope2Code(Scope scope) {
-        this.scope = scope;
+        CompilationUnitRenderer renderer
+                = new CompilationUnitRenderer(
+                        new ClassDeclarationRenderer(
+                                new MethodDeclarationRenderer(
+                                        new InvocationCodeRenderer())));
+
+        return renderer.render(scope);
     }
 
-    public String getCode() {
-        StringBuilder builder = new StringBuilder();
+    public static String getCode(ClassDeclaration scope) {
 
-//        scope.g
-        return builder.toString();
+        ClassDeclarationRenderer renderer
+                = new ClassDeclarationRenderer(
+                        new MethodDeclarationRenderer(
+                                new InvocationCodeRenderer()));
+
+        return renderer.render(scope);
+    }
+
+    public static String getCode(MethodDeclaration scope) {
+
+        MethodDeclarationRenderer renderer
+                = new MethodDeclarationRenderer(
+                        new InvocationCodeRenderer());
+
+        return renderer.render(scope);
+    }
+
+    public static String getCode(Invocation invocation) {
+
+        return new InvocationCodeRenderer().render(invocation);
     }
 
     public static void main(String[] args) {
@@ -45,7 +67,7 @@ public class Scope2Code {
     public static CompilationUnitDeclaration demoScope() {
         VisualCodeBuilder builder = new VisualCodeBuilder_Impl();
 
-        CompilationUnitDeclaration myFile = builder.declareCompilationUnit("MyFile.java");
+        CompilationUnitDeclaration myFile = builder.declareCompilationUnit("MyFile.java", "my.testpackage");
         ClassDeclaration myFileClass = builder.declareClass(myFile,
                 new Type("my.testpackage.MyFileClass"),
                 new Modifiers(Modifier.PUBLIC), new Extends(), new Extends());
@@ -60,8 +82,8 @@ public class Scope2Code {
         MethodDeclaration m2 = builder.declareMethod(myFileClass,
                 new Modifiers(Modifier.PUBLIC), new Type("int"), "m2",
                 new Parameters(new Parameter(new Type("double"), "v1"),
-                new Parameter(new Type("my.testpackage.MyFileClass"), "v2")));
-        
+                        new Parameter(new Type("my.testpackage.MyFileClass"), "v2")));
+
         builder.invokeMethod(m2, "this", m2.getName(), true,
                 "retM2", m2.getVariable("v1"), m2.getVariable("v2"));
 
@@ -208,28 +230,9 @@ class ScopeRendererImpl implements ScopeRenderer {
 
 class InvocationCodeRenderer implements CodeRenderer<Invocation> {
 
-//    private static final STGroup group = new STGroupString(
-//            "invocation(var,name,params) ::= \"<var>.<name>(<params>);\"\n"
-//            + "scope"
-//    );
-//
-//    private static final ST invocation = group.getInstanceOf("invocation");
     public InvocationCodeRenderer() {
     }
 
-//    @Override
-//    public String render(Invocation e) {
-//
-//        if (e.isConstructor()) {
-//
-//        } else if (e.isScope()) {
-//            invocation.add("var", e.getVarName());
-//            invocation.add("name", e.getMethodName());
-//            invocation.add("params", e.getArguments());
-//        }
-//
-//        return invocation.render();
-//    }
     @Override
     public String render(Invocation e) {
         CodeBuilder cb = new CodeBuilder();
@@ -301,9 +304,10 @@ class ClassDeclarationRenderer implements CodeRenderer<ClassDeclaration> {
     @Override
     public void render(ClassDeclaration cd, CodeBuilder cb) {
 
+        cb.append("@eu.mihosoft.vrl.instrumentation.VRLVisualization").newLine();
         createModifiers(cd, cb);
         cb.append("class ");
-        cb.append(cd.getName());
+        cb.append(new Type(cd.getName()).getShortName());
         createExtends(cd, cb);
         createImplements(cd, cb);
         cb.append(" {").newLine();
@@ -321,9 +325,12 @@ class ClassDeclarationRenderer implements CodeRenderer<ClassDeclaration> {
 
     private void createDeclaredVariables(ClassDeclaration cd, CodeBuilder cb) {
         for (Variable v : cd.getVariables()) {
-            cb.newLine().append(v.getType().getFullClassName()).
-                    append(" ").append(v.getName()).append(";");
+            if (!"this".equals(v.getName())) {
+                cb.newLine().append(v.getType().getFullClassName()).
+                        append(" ").append(v.getName()).append(";").newLine();
+            }
         }
+        cb.newLine();
     }
 
     private void createModifiers(ClassDeclaration cd, CodeBuilder cb) {
@@ -450,6 +457,12 @@ class CompilationUnitRenderer implements CodeRenderer<CompilationUnitDeclaration
 
     @Override
     public void render(CompilationUnitDeclaration e, CodeBuilder cb) {
+
+        if (e.getPackageName() != null || e.getPackageName().isEmpty()) {
+            cb.append("package ").append(e.getPackageName()).append(";").
+                    newLine().newLine();
+        }
+
         for (ClassDeclaration cd : e.getDeclaredClasses()) {
             classDeclarationRenderer.render(cd, cb);
         }

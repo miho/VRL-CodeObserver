@@ -117,7 +117,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         });
 
 //        this.rootScope = codeBuilder.createScope(null, ScopeType.NONE, sourceUnit.getName(), new Object[0]);
-        this.rootScope = codeBuilder.declareCompilationUnit(sourceUnit.getName());
+        this.rootScope = codeBuilder.declareCompilationUnit(sourceUnit.getName(), "undefined");
         this.currentScope = rootScope;
     }
 

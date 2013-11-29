@@ -39,10 +39,10 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
     
     
     @Override
-    public CompilationUnitDeclaration declareCompilationUnit(String name) {
+    public CompilationUnitDeclaration declareCompilationUnit(String name, String packageName) {
 //        IType type = new Type(name); // TODO validation
         
-        return new CompilationUnitDeclaration_Impl(idRequest.request(), null, name);
+        return new CompilationUnitDeclaration_Impl(idRequest.request(), null, name, packageName);
         
 //        return createScope(null, ScopeType.COMPILATION_UNIT, name, new Object[0]);
     }
