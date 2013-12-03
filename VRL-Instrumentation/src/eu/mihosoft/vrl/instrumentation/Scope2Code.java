@@ -93,7 +93,8 @@ public class Scope2Code {
         ForDeclaration forD2 = builder.declareFor(m2, "i", 0, 9, 2);
 
         builder.invokeMethod(forD1, "this", m2.getName(), true,
-                "retM2", m2.getVariable("v1"), m2.getVariable("v2"));
+                "retM2", forD2.getVariable("i"), m2.getVariable("v2"));
+        builder.invokeMethod(forD1, "this", m1.getName(), true, "retM1b", m1.getVariable("v1"));
 
         return myFile;
     }

@@ -30,7 +30,7 @@ public interface Scope extends CodeEntity {
     public Variable getVariable(String name);
 
     public Variable createVariable(IType type, String varName);
-    
+
     public Variable createStaticVariable(IType type);
 
     public void assignConstant(String varName, Object constant);
@@ -112,6 +112,13 @@ class ScopeImpl implements Scope {
         if (result == null && getParent() != null) {
             result = getParent().getVariable(name);
         }
+        
+        if (result == null) {
+            throw new IllegalArgumentException(
+                    "Variable '"
+                    + name
+                    + "' does not exist in the specified scope!");
+        }
 
         return result;
     }
@@ -137,7 +144,7 @@ class ScopeImpl implements Scope {
 
         return createVariable(type, varName);
     }
-    
+
     @Override
     public Variable createStaticVariable(IType type) {
         Variable variable = VariableImpl.createStaticVar(parent, type);

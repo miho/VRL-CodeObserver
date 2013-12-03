@@ -84,13 +84,20 @@ class InvocationImpl implements Invocation {
 
         arguments.addAll(Arrays.asList(args));
 
-        Variable var = parent.getVariable(varName);
+        Variable var = null;
+        
+        try{
+            var = parent.getVariable(varName);
+        } catch(IllegalArgumentException ex) {
+            // will be checked later (see if below)
+        }
 
-        if (!isStatic && var == null) {
+        if (!isStatic && !isScope() && var == null) {
+            
             throw new IllegalArgumentException(
                     "Variable '"
                     + varName
-                    + "' does not exist in the specified scope!");
+                    + "' does not exist in scope '" + parent.getName() + "'!");
         } else if (varName != null) {
             // check whether varName is a valid type
             Type type = new Type(varName);

@@ -16,6 +16,8 @@ public class ForDeclaration_Impl extends ScopeImpl implements ForDeclaration {
     public ForDeclaration_Impl(String id, Scope parent, String varName, int from, int to, int inc) {
         super(id, parent, ScopeType.FOR, ScopeType.FOR.name(), new ForDeclarationMetaData(varName, from, to, inc));
         metadata = (ForDeclarationMetaData) getScopeArgs()[0];
+        
+        createVariable(new Type("int"), varName);
     }
 
     @Override
