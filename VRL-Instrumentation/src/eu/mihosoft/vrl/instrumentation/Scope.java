@@ -112,12 +112,19 @@ class ScopeImpl implements Scope {
         if (result == null && getParent() != null) {
             result = getParent().getVariable(name);
         }
-        
+
         if (result == null) {
+            
+            String parentName = "<unknown>";
+            
+            if (parent!=null) {
+                parentName = parent.getName();
+            }
+            
             throw new IllegalArgumentException(
                     "Variable '"
                     + name
-                    + "' does not exist in the specified scope!");
+                    + "' does not exist in scope '" + parentName + "'!");
         }
 
         return result;

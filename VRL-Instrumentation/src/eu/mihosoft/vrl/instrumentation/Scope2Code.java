@@ -90,11 +90,11 @@ public class Scope2Code {
                 "retM2", m2.getVariable("v1"), m2.getVariable("v2"));
 
         ForDeclaration forD1 = builder.declareFor(m2, "i", 0, 3, 1);
-        ForDeclaration forD2 = builder.declareFor(m2, "i", 0, 9, 2);
+        ForDeclaration forD2 = builder.declareFor(forD1, "j", 0, 9, 2);
 
-        builder.invokeMethod(forD1, "this", m2.getName(), true,
-                "retM2", forD2.getVariable("i"), m2.getVariable("v2"));
-        builder.invokeMethod(forD1, "this", m1.getName(), true, "retM1b", m1.getVariable("v1"));
+        builder.invokeMethod(forD2, "this", m2.getName(), true,
+                "retM2", forD2.getVariable("j"), m2.getVariable("v2"));
+        builder.invokeMethod(forD2, "this", m1.getName(), true, "retM1b", m1.getVariable("v1"));
 
         return myFile;
     }
@@ -168,24 +168,24 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
                         append(forD.getVarName()).append("+=" + forD.getInc()).append(") {");
 
                 if (!s.getControlFlow().getInvocations().isEmpty()) {
-                    System.out.println("--> not empty");
                     cb.newLine();
                     cb.incIndentation();
                 }
 
                 for (Invocation j : forD.getControlFlow().getInvocations()) {
-                    System.out.println("--> in-for: " + j);
                     render(j, cb);
                 }
+                
                 if (!s.getControlFlow().getInvocations().isEmpty()) {
                     cb.decIndentation();
                 }
                 
                 cb.append("}");
 
-            } else if (s instanceof WhileDeclaration) {
-                WhileDeclaration whileD = (WhileDeclaration) s;
             }
+//            else if (s instanceof WhileDeclaration) {
+//                WhileDeclaration whileD = (WhileDeclaration) s;
+//            }
 //            else if (s instanceof If) {
 //                ForDeclaration forD = (ForDeclaration) s;
 //            }
