@@ -27,16 +27,16 @@ public interface Invocation extends CodeEntity {
     public boolean isVoid();
 
     public boolean isScope();
-    
+
     public boolean isStatic();
 }
 
 class ScopeInvocationImpl extends InvocationImpl implements ScopeInvocation {
 
-    private Scope scope;
+    private final Scope scope;
 
     public ScopeInvocationImpl(Scope s) {
-        super(s, "", null, "scope", false, true, false, "", new Variable[0]);
+        super(s, "", null, "scope", false, true, true, "", new Variable[0]);
         this.scope = s;
     }
 
@@ -91,7 +91,7 @@ class InvocationImpl implements Invocation {
                     "Variable '"
                     + varName
                     + "' does not exist in the specified scope!");
-        } else {
+        } else if (varName != null) {
             // check whether varName is a valid type
             Type type = new Type(varName);
         }
@@ -188,6 +188,7 @@ class InvocationImpl implements Invocation {
     /**
      * @return the Static
      */
+    @Override
     public boolean isStatic() {
         return Static;
     }

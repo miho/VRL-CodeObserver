@@ -153,7 +153,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         System.out.println("CLASS: " + s.getName());
 
 //        currentScope = codeBuilder.createScope(currentScope, ScopeType.CLASS, s.getName(), new Object[0]);
-        currentScope = codeBuilder.declareClass(currentScope,
+        currentScope = codeBuilder.declareClass((CompilationUnitDeclaration)currentScope,
                 new Type(s.getName(), false),
                 convertModifiers(s.getModifiers()),
                 convertExtends(s),

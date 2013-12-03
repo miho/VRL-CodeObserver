@@ -83,8 +83,6 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
         ForDeclaration result = new ForDeclaration_Impl(
                 idRequest.request(), scope, varName, from, to, inc);
 
-        scope.getControlFlow().callScope(result);
-
         return result;
     }
 
@@ -148,7 +146,7 @@ public class VisualCodeBuilder_Impl implements VisualCodeBuilder {
     }
 
     @Override
-    public ClassDeclaration declareClass(Scope scope, IType type, IModifiers modifiers, IExtends extendz, IExtends implementz) {
+    public ClassDeclaration declareClass(CompilationUnitDeclaration scope, IType type, IModifiers modifiers, IExtends extendz, IExtends implementz) {
         String id = idRequest.request();
         
         ClassDeclaration result = new ClassDeclaration_Impl(id, scope, type, modifiers, extendz, implementz);

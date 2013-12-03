@@ -72,6 +72,8 @@ public class Scope2Code {
                 new Type("my.testpackage.MyFileClass"),
                 new Modifiers(Modifier.PUBLIC), new Extends(), new Extends());
 
+        builder.createVariable(myFileClass, new Type("int"), "value1");
+
         MethodDeclaration m1 = builder.declareMethod(myFileClass,
                 new Modifiers(Modifier.PUBLIC), new Type("int"), "m1",
                 new Parameters(new Parameter(new Type("int"), "v1")));
@@ -87,9 +89,14 @@ public class Scope2Code {
         builder.invokeMethod(m2, "this", m2.getName(), true,
                 "retM2", m2.getVariable("v1"), m2.getVariable("v2"));
 
+        ForDeclaration forD1 = builder.declareFor(m2, "i", 0, 3, 1);
+        ForDeclaration forD2 = builder.declareFor(m2, "i", 0, 9, 2);
+
+        builder.invokeMethod(forD1, "this", m2.getName(), true,
+                "retM2", m2.getVariable("v1"), m2.getVariable("v2"));
+
         return myFile;
     }
-
 }
 
 final class Utils {
@@ -117,117 +124,6 @@ final class Utils {
     }
 }
 
-interface ScopeRenderer extends CodeRenderer<Scope> {
-
-    public void setCompilationUnitRenderer(CodeRenderer<CompilationUnitDeclaration> renderer);
-
-    public void setClassDeclarationRenderer(CodeRenderer<ClassDeclaration> renderer);
-
-    public void setMethodDeclarationRenderer(CodeRenderer<MethodDeclaration> renderer);
-
-    public void setInvocationRenderer(CodeRenderer<Invocation> renderer);
-
-    public void setForLoopRenderer(CodeRenderer<ForDeclaration> renderer);
-
-    public void setWhileLoopRenderer(CodeRenderer<WhileDeclaration> renderer);
-
-//    public void setIfStatementRenderer(CodeRenderer)
-}
-
-class ScopeRendererImpl implements ScopeRenderer {
-
-    private CodeRenderer<CompilationUnitDeclaration> compilationUnitRenderer;
-    private CodeRenderer<ClassDeclaration> classDeclarationRenderer;
-    private CodeRenderer<MethodDeclaration> methodDeclarationRenderer;
-    private CodeRenderer<Invocation> invocationRenderer;
-    private CodeRenderer<ForDeclaration> forLoopRenderer;
-    private CodeRenderer<WhileDeclaration> whileLoopRenderer;
-
-    @Override
-    public void setInvocationRenderer(CodeRenderer<Invocation> renderer) {
-        this.invocationRenderer = renderer;
-    }
-
-    @Override
-    public String render(Scope e) {
-
-        StringBuilder builder = new StringBuilder();
-
-//        builder.append()
-        switch (e.getType()) {
-            case CLASS:
-                renderClass(e, builder);
-                break;
-            case METHOD:
-                renderMethod(e, builder);
-                break;
-            default:
-                renderUnsupported(e, builder);
-        }
-
-        return builder.toString();
-    }
-
-    private void renderClass(Scope s, StringBuilder builder) {
-//        builder.append();
-    }
-
-    private void renderMethod(Scope s, StringBuilder builder) {
-
-//        builder.append(s.)
-    }
-
-    private void renderUnsupported(Scope s, StringBuilder builder) {
-        throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
-    }
-
-    @Override
-    public void render(Scope e, CodeBuilder cb) {
-        throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
-    }
-
-    /**
-     * @param compilationUnitRenderer the compilationUnitRenderer to set
-     */
-    @Override
-    public void setCompilationUnitRenderer(CodeRenderer<CompilationUnitDeclaration> compilationUnitRenderer) {
-        this.compilationUnitRenderer = compilationUnitRenderer;
-    }
-
-    /**
-     * @param classDeclarationRenderer the classDeclarationRenderer to set
-     */
-    @Override
-    public void setClassDeclarationRenderer(CodeRenderer<ClassDeclaration> classDeclarationRenderer) {
-        this.classDeclarationRenderer = classDeclarationRenderer;
-    }
-
-    /**
-     * @param methodDeclarationRenderer the methodDeclarationRenderer to set
-     */
-    @Override
-    public void setMethodDeclarationRenderer(CodeRenderer<MethodDeclaration> methodDeclarationRenderer) {
-        this.methodDeclarationRenderer = methodDeclarationRenderer;
-    }
-
-    /**
-     * @param forLoopRenderer the forLoopRenderer to set
-     */
-    @Override
-    public void setForLoopRenderer(CodeRenderer<ForDeclaration> forLoopRenderer) {
-        this.forLoopRenderer = forLoopRenderer;
-    }
-
-    /**
-     * @param whileLoopRenderer the whileLoopRenderer to set
-     */
-    @Override
-    public void setWhileLoopRenderer(CodeRenderer<WhileDeclaration> whileLoopRenderer) {
-        this.whileLoopRenderer = whileLoopRenderer;
-    }
-
-}
-
 class InvocationCodeRenderer implements CodeRenderer<Invocation> {
 
     public InvocationCodeRenderer() {
@@ -241,25 +137,57 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
     }
 
     @Override
-    public void render(Invocation e, CodeBuilder cb) {
+    public void render(Invocation i, CodeBuilder cb) {
 
-        if (e.isConstructor()) {
-            cb.append("new ").append(e.getReturnValueName()).
-                    append("= new").append(e.getVariableName()).
+        if (i.isConstructor()) {
+            cb.append("new ").append(i.getReturnValueName()).
+                    append("= new").append(i.getVariableName()).
                     append("(");
-            renderParams(e, cb);
+            renderParams(i, cb);
             cb.append(");");
 
-        } else if (!e.isScope()) {
+        } else if (!i.isScope()) {
             cb.
-                    append(e.getVariableName()).
+                    append(i.getVariableName()).
                     append(".").
-                    append(e.getMethodName()).append("(");
-            renderParams(e, cb);
+                    append(i.getMethodName()).append("(");
+            renderParams(i, cb);
 
             cb.append(");");
         } else {
-            // scope
+
+            ScopeInvocation si = (ScopeInvocation) i;
+            Scope s = si.getScope();
+
+            if (s instanceof ForDeclaration) {
+                ForDeclaration forD = (ForDeclaration) s;
+                cb.append("for(").append("int ").append(forD.getVarName()).
+                        append(" = " + forD.getFrom()).append("; ").append(forD.getVarName()).
+                        append(" <= " + forD.getTo()).append("; ").
+                        append(forD.getVarName()).append("+=" + forD.getInc()).append(") {");
+
+                if (!s.getControlFlow().getInvocations().isEmpty()) {
+                    System.out.println("--> not empty");
+                    cb.newLine();
+                    cb.incIndentation();
+                }
+
+                for (Invocation j : forD.getControlFlow().getInvocations()) {
+                    System.out.println("--> in-for: " + j);
+                    render(j, cb);
+                }
+                if (!s.getControlFlow().getInvocations().isEmpty()) {
+                    cb.decIndentation();
+                }
+                
+                cb.append("}");
+
+            } else if (s instanceof WhileDeclaration) {
+                WhileDeclaration whileD = (WhileDeclaration) s;
+            }
+//            else if (s instanceof If) {
+//                ForDeclaration forD = (ForDeclaration) s;
+//            }
         }
 
         cb.newLine();
@@ -280,6 +208,62 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
             } else {
                 cb.append(v.getName());
             }
+        }
+    }
+}
+
+class MethodDeclarationRenderer implements CodeRenderer<MethodDeclaration> {
+
+    private CodeRenderer<Invocation> invocationRenderer;
+
+    public MethodDeclarationRenderer(CodeRenderer<Invocation> invocationRenderer) {
+        this.invocationRenderer = invocationRenderer;
+    }
+
+    @Override
+    public String render(MethodDeclaration e) {
+        CodeBuilder cb = new CodeBuilder();
+
+        render(e, cb);
+
+        return cb.toString();
+    }
+
+    @Override
+    public void render(MethodDeclaration e, CodeBuilder cb) {
+
+        createModifiers(e, cb);
+        cb.append(e.getReturnType().getFullClassName());
+        cb.append(" ").append(e.getName()).append("(");
+        renderParams(e, cb);
+        cb.append(") {").newLine();
+        cb.incIndentation();
+
+        for (Invocation i : e.getControlFlow().getInvocations()) {
+            System.out.println(" --> inv: " + i);
+            invocationRenderer.render(i, cb);
+        }
+
+        cb.decIndentation().append("}").newLine();
+    }
+
+    private void createModifiers(MethodDeclaration md, CodeBuilder cb) {
+        for (Modifier m : md.getModifiers().getModifiers()) {
+            cb.append(Utils.modifierToName(m)).append(" ");
+        }
+    }
+
+    private void renderParams(MethodDeclaration e, CodeBuilder cb) {
+        boolean firstCall = true;
+        for (IParameter v : e.getParameters().getParamenters()) {
+
+            if (firstCall) {
+                firstCall = false;
+            } else {
+                cb.append(", ");
+            }
+
+            cb.append(v.getType().getFullClassName()).append(" ").append(v.getName());
         }
     }
 }
@@ -380,61 +364,6 @@ class ClassDeclarationRenderer implements CodeRenderer<ClassDeclaration> {
     }
 }
 
-class MethodDeclarationRenderer implements CodeRenderer<MethodDeclaration> {
-
-    private CodeRenderer<Invocation> invocationRenderer;
-
-    public MethodDeclarationRenderer(CodeRenderer<Invocation> invocationRenderer) {
-        this.invocationRenderer = invocationRenderer;
-    }
-
-    @Override
-    public String render(MethodDeclaration e) {
-        CodeBuilder cb = new CodeBuilder();
-
-        render(e, cb);
-
-        return cb.toString();
-    }
-
-    @Override
-    public void render(MethodDeclaration e, CodeBuilder cb) {
-
-        createModifiers(e, cb);
-        cb.append(e.getReturnType().getFullClassName());
-        cb.append(" ").append(e.getName()).append("(");
-        renderParams(e, cb);
-        cb.append(") {").newLine();
-        cb.incIndentation();
-
-        for (Invocation i : e.getControlFlow().getInvocations()) {
-            invocationRenderer.render(i, cb);
-        }
-
-        cb.decIndentation().append("}").newLine();
-    }
-
-    private void createModifiers(MethodDeclaration md, CodeBuilder cb) {
-        for (Modifier m : md.getModifiers().getModifiers()) {
-            cb.append(Utils.modifierToName(m)).append(" ");
-        }
-    }
-
-    private void renderParams(MethodDeclaration e, CodeBuilder cb) {
-        boolean firstCall = true;
-        for (IParameter v : e.getParameters().getParamenters()) {
-
-            if (firstCall) {
-                firstCall = false;
-            } else {
-                cb.append(", ");
-            }
-
-            cb.append(v.getType().getFullClassName()).append(" ").append(v.getName());
-        }
-    }
-}
-
 class CompilationUnitRenderer implements CodeRenderer<CompilationUnitDeclaration> {
 
     private CodeRenderer<ClassDeclaration> classDeclarationRenderer;
@@ -481,81 +410,6 @@ class CompilationUnitRenderer implements CodeRenderer<CompilationUnitDeclaration
     public void setClassDeclarationRenderer(CodeRenderer<ClassDeclaration> classDeclarationRenderer) {
         this.classDeclarationRenderer = classDeclarationRenderer;
     }
-}
-
-class ScopeCodeRendererImpl implements CodeRenderer<Scope> {
-
-    @Override
-    public String render(Scope e) {
-        CodeBuilder cb = new CodeBuilder();
-        render(e, cb);
-        return cb.getCode();
-    }
-
-    public int var;
-
-    @Override
-    public void render(Scope e, CodeBuilder cb) {
-        switch (e.getType()) {
-            case CLASS:
-                renderClass(e, cb);
-                break;
-            case CLOSURE:
-                renderClosure(e, cb);
-                break;
-            case METHOD:
-                renderMethod(e, cb);
-                break;
-            case FOR:
-                renderFor(e, cb);
-                break;
-            case WHILE:
-                renderWhile(e, cb);
-                break;
-            case IF:
-                renderIf(e, cb);
-                break;
-            case ELSE:
-                renderElse(e, cb);
-                break;
-            case NONE:
-                renderNone(e, cb);
-                break;
-        }
-    }
-
-    private void renderClass(Scope e, CodeBuilder cb) {
-        throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
-    }
-
-    private void renderClosure(Scope e, CodeBuilder cb) {
-        throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
-    }
-
-    private void renderMethod(Scope e, CodeBuilder cb) {
-//        cb.append(e.)
-    }
-
-    private void renderFor(Scope e, CodeBuilder cb) {
-        throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
-    }
-
-    private void renderWhile(Scope e, CodeBuilder cb) {
-        throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
-    }
-
-    private void renderIf(Scope e, CodeBuilder cb) {
-        throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
-    }
-
-    private void renderElse(Scope e, CodeBuilder cb) {
-        throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
-    }
-
-    private void renderNone(Scope e, CodeBuilder cb) {
-        throw new UnsupportedOperationException("TODO NB-AUTOGEN: Not supported yet."); // TODO NB-AUTOGEN
-    }
-
 }
 
 //class ScopeCodeRendererImpl implements CodeRenderer<Scope> {
