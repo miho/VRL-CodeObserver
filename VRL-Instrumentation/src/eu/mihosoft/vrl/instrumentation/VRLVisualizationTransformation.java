@@ -246,12 +246,12 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
                     "For loop must contain a variable declaration such as 'int i=0'!");
         }
 
-        if (!stateMachine.get("for-loop:compareExpression"))  {
+        if (!stateMachine.get("for-loop:compareExpression")) {
             throw new IllegalStateException("for-loop: must contain binary"
                     + " expressions of the form 'a <= b' with a, b being"
                     + " constant integers!");
         }
-        
+
         stateMachine.pop();
 
         currentScope = currentScope.getParent();
@@ -386,23 +386,26 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         if (currentScope instanceof ForDeclaration_Impl) {
 
             ForDeclaration_Impl forD = (ForDeclaration_Impl) currentScope;
-            forD.setVarName(s.getVariableExpression().getName());
 
-            if (!(s.getRightExpression() instanceof ConstantExpression)) {
-                throw new IllegalStateException("In for-loop: variable '" + forD.getVarName()
-                        + "' must be initialized with an integer constant!");
+            if (!stateMachine.get("for-loop:declaration")) {
+                forD.setVarName(s.getVariableExpression().getName());
+
+                if (!(s.getRightExpression() instanceof ConstantExpression)) {
+                    throw new IllegalStateException("In for-loop: variable '" + forD.getVarName()
+                            + "' must be initialized with an integer constant!");
+                }
+
+                ConstantExpression ce = (ConstantExpression) s.getRightExpression();
+
+                if (!(ce.getValue() instanceof Integer)) {
+                    throw new IllegalStateException("In for-loop: variable '" + forD.getVarName()
+                            + "' must be initialized with an integer constant!");
+                }
+
+                forD.setFrom((Integer) ce.getValue());
+
+                stateMachine.set("for-loop:declaration", true);
             }
-
-            ConstantExpression ce = (ConstantExpression) s.getRightExpression();
-
-            if (!(ce.getValue() instanceof Integer)) {
-                throw new IllegalStateException("In for-loop: variable '" + forD.getVarName()
-                        + "' must be initialized with an integer constant!");
-            }
-
-            forD.setFrom((Integer) ce.getValue());
-
-            stateMachine.set("for-loop:declaration", true);
 
         } else {
 
@@ -418,30 +421,79 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     @Override
     public void visitBinaryExpression(BinaryExpression s) {
 
-        if (currentScope instanceof ForDeclaration_Impl 
-                && stateMachine.get("for-loop:declaration")) {
+        if (currentScope instanceof ForDeclaration_Impl) {
+            
             ForDeclaration_Impl forD = (ForDeclaration_Impl) currentScope;
-
-            if (!(s.getLeftExpression() instanceof VariableExpression)) {
-                throw new IllegalStateException("In for-loop: only binary"
-                        + " expressions of the form 'a <= b' with a, b being"
-                        + " constant integers are supported!");
-            }
             
-            
-            if (!"<=".equals(s.getOperation().getText())) {
-                throw new IllegalStateException("In for-loop: only binary"
-                        + " expressions of the form 'a <= b' with a, b being"
-                        + " constant integers are supported!");
-            }
+            if (stateMachine.get("for-loop:declaration")
+                    && !stateMachine.get("for-loop:compareExpression")) {
+                
 
-            if (!(s.getRightExpression() instanceof ConstantExpression)) {
-                throw new IllegalStateException("In for-loop: only binary"
-                        + " expressions of the form 'a <= b' with a, b being"
-                        + " constant integers are supported!");
-            }
+                if (!(s.getLeftExpression() instanceof VariableExpression)) {
+                    throw new IllegalStateException("In for-loop: only binary"
+                            + " expressions of the form 'a <= b' with a, b being"
+                            + " constant integers are supported!");
+                }
 
-            stateMachine.set("for-loop:compareExpression", true);
+                if (!"<=".equals(s.getOperation().getText())) {
+                    throw new IllegalStateException("In for-loop: only binary"
+                            + " expressions of the form 'a <= b' with a, b being"
+                            + " constant integers are supported!");
+                }
+
+                if (!(s.getRightExpression() instanceof ConstantExpression)) {
+                    throw new IllegalStateException("In for-loop: only binary"
+                            + " expressions of the form 'a <= b' with a, b being"
+                            + " constant integers are supported!");
+                }
+
+                ConstantExpression ce = (ConstantExpression) s.getRightExpression();
+
+                if (!(ce.getValue() instanceof Integer)) {
+//                    throw new IllegalStateException("In for-loop: value '" + ce.getValue()
+//                            + "' is not an integer constant! ");
+
+                    throw new IllegalStateException("In for-loop: only binary"
+                            + " expressions of the form 'a <= b' with a, b being"
+                            + " constant integers are supported!");
+                }
+
+                forD.setTo((int) ce.getValue());
+
+                stateMachine.set("for-loop:compareExpression", true);
+            } else if (stateMachine.get("for-loop:declaration")
+                    && stateMachine.get("for-loop:compareExpression")
+                    && !stateMachine.get("for-loop:incExpression")) {
+
+                if (!"+=".equals(s.getOperation().getText())
+                        && !"-=".equals(s.getOperation().getText())) {
+                    throw new IllegalStateException("In for-loop: inc/dec '"
+                            + s.getOperation().getText()
+                            + "' not spupported! Must be '+=' or '-='!");
+                }
+
+                if (!(s.getRightExpression() instanceof ConstantExpression)) {
+                    throw new IllegalStateException("In for-loop: variable '" + forD.getVarName()
+                            + "' must be initialized with an integer constant!");
+                }
+
+                ConstantExpression ce = (ConstantExpression) s.getRightExpression();
+
+                if (!(ce.getValue() instanceof Integer)) {
+                    throw new IllegalStateException(
+                            "In for-loop: inc/dec must be an integer constant!");
+                }
+
+                if ("+=".equals(s.getOperation().getText())) {
+                    forD.setInc((int) ce.getValue());
+                } else if ("-=".equals(s.getOperation().getText())) {
+                    forD.setInc(-(int) ce.getValue());
+                }
+
+                stateMachine.set("for-loop:incExpression", true);
+
+                //
+            }
         }
 
         super.visitBinaryExpression(s);
@@ -454,11 +506,14 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     }
 
     @Override
-    public void visitPostfixExpression(PostfixExpression expression) {
-        
-        
+    public void visitPostfixExpression(PostfixExpression s) {
 
-        super.visitPostfixExpression(expression);
+        if (currentScope instanceof ForDeclaration_Impl) {
+
+            stateMachine.set("for-loop:incExpression", true);
+        }
+
+        super.visitPostfixExpression(s);
     }
 
     @Override

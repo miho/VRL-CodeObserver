@@ -127,7 +127,7 @@ public class Scope2Code {
         builder.invokeMethod(m2, "this", m2.getName(), true,
                 "retM2", m2.getVariable("v1"), m2.getVariable("v2"));
 
-        ForDeclaration forD1 = builder.declareFor(m2, "i", 1, 3, 1);
+        ForDeclaration forD1 = builder.declareFor(m2, "i", 1, 3, 2);
 //        ForDeclaration forD2 = builder.declareFor(forD1, "j", 10, 9, -1);
 
 //        builder.invokeMethod(forD2, "this", m2.getName(), true,
@@ -207,6 +207,8 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
 
                 if (forD.getInc() == 1) {
                     cb.append("++");
+                } else if (forD.getInc() == -1) {
+                    cb.append("--");
                 } else if (forD.getInc() < 0) {
                     cb.append("-=" + Math.abs(forD.getInc()));
                 } else {
