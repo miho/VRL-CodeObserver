@@ -422,12 +422,11 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     public void visitBinaryExpression(BinaryExpression s) {
 
         if (currentScope instanceof ForDeclaration_Impl) {
-            
+
             ForDeclaration_Impl forD = (ForDeclaration_Impl) currentScope;
-            
+
             if (stateMachine.get("for-loop:declaration")
                     && !stateMachine.get("for-loop:compareExpression")) {
-                
 
                 if (!(s.getLeftExpression() instanceof VariableExpression)) {
                     throw new IllegalStateException("In for-loop: only binary"
@@ -509,6 +508,14 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     public void visitPostfixExpression(PostfixExpression s) {
 
         if (currentScope instanceof ForDeclaration_Impl) {
+
+            ForDeclaration_Impl forD = (ForDeclaration_Impl) currentScope;
+
+            if ("++".equals(s.getOperation().getText())) {
+                forD.setInc(1);
+            } else if ("--".equals(s.getOperation().getText())) {
+                forD.setInc(-1);
+            }
 
             stateMachine.set("for-loop:incExpression", true);
         }
