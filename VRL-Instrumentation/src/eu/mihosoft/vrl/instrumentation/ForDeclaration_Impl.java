@@ -15,8 +15,18 @@ public class ForDeclaration_Impl extends ScopeImpl implements ForDeclaration {
 
     public ForDeclaration_Impl(String id, Scope parent, String varName, int from, int to, int inc) {
         super(id, parent, ScopeType.FOR, ScopeType.FOR.name(), new ForDeclarationMetaData(varName, from, to, inc));
-        metadata = (ForDeclarationMetaData) getScopeArgs()[0];
+
+        boolean forceIncrement = from < to;
+        boolean equal = from == to;
         
+        if (forceIncrement && !equal && inc <= 0) {
+            throw new IllegalArgumentException("For loop cannot have negative or zero increment!");
+        } else if (!forceIncrement && !equal && inc >= 0) {
+            throw new IllegalArgumentException("For loop cannot have positive or zero increment!");
+        }
+
+        metadata = (ForDeclarationMetaData) getScopeArgs()[0];
+
         createVariable(new Type("int"), varName);
     }
 
@@ -39,15 +49,43 @@ public class ForDeclaration_Impl extends ScopeImpl implements ForDeclaration {
     public int getInc() {
         return metadata.getInc();
     }
+    
+     /**
+     * @param varName the varName to set
+     */
+    public void setVarName(String varName) {
+        metadata.setVarName(varName);
+    }
+
+    /**
+     * @param from the from to set
+     */
+    public void setFrom(int from) {
+        metadata.setFrom(from);
+    }
+
+    /**
+     * @param to the to to set
+     */
+    public void setTo(int to) {
+        metadata.setTo(to);
+    }
+
+    /**
+     * @param inc the inc to set
+     */
+    public void setInc(int inc) {
+        metadata.setInc(inc);
+    }
 
 }
 
 class ForDeclarationMetaData {
 
-    private final String varName;
-    private final int from;
-    private final int to;
-    private final int inc;
+    private String varName;
+    private int from;
+    private int to;
+    private int inc;
 
     public ForDeclarationMetaData(String varName, int from, int to, int inc) {
         this.varName = varName;
@@ -82,6 +120,34 @@ class ForDeclarationMetaData {
      */
     public int getInc() {
         return inc;
+    }
+
+    /**
+     * @param varName the varName to set
+     */
+    public void setVarName(String varName) {
+        this.varName = varName;
+    }
+
+    /**
+     * @param from the from to set
+     */
+    public void setFrom(int from) {
+        this.from = from;
+    }
+
+    /**
+     * @param to the to to set
+     */
+    public void setTo(int to) {
+        this.to = to;
+    }
+
+    /**
+     * @param inc the inc to set
+     */
+    public void setInc(int inc) {
+        this.inc = inc;
     }
 
 }

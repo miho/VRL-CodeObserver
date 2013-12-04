@@ -6,6 +6,8 @@
 package eu.mihosoft.vrl.instrumentation;
 
 //import org.stringtemplate.v4.ST;
+import groovy.lang.GroovyClassLoader;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,6 +64,42 @@ public class Scope2Code {
                                         new InvocationCodeRenderer())));
 
         System.out.println(renderer.render(scope));
+
+        UIBinding.scopes.clear();
+
+        GroovyClassLoader gcl = new GroovyClassLoader();
+        gcl.parseClass(renderer.render(scope));
+
+        if (UIBinding.scopes == null) {
+            System.err.println("NO SCOPES");
+            return;
+        }
+
+        String code = "";
+
+        for (Collection<Scope> scopeList : UIBinding.scopes.values()) {
+            for (Scope s : scopeList) {
+                if (s instanceof CompilationUnitDeclaration) {
+                    code = renderer.render((CompilationUnitDeclaration) s);
+                }
+            }
+        }
+
+        System.out.println("code from compiler:\n" + code);
+
+        gcl = new GroovyClassLoader();
+        gcl.parseClass(renderer.render(scope));
+
+        for (Collection<Scope> scopeList : UIBinding.scopes.values()) {
+            for (Scope s : scopeList) {
+                if (s instanceof CompilationUnitDeclaration) {
+                    code = renderer.render((CompilationUnitDeclaration) s);
+                }
+            }
+        }
+
+        System.out.println("code from compiler 2:\n" + code);
+
     }
 
     public static CompilationUnitDeclaration demoScope() {
@@ -89,13 +127,12 @@ public class Scope2Code {
         builder.invokeMethod(m2, "this", m2.getName(), true,
                 "retM2", m2.getVariable("v1"), m2.getVariable("v2"));
 
-        ForDeclaration forD1 = builder.declareFor(m2, "i", 0, 3, 1);
-        ForDeclaration forD2 = builder.declareFor(forD1, "j", 0, 9, 2);
+        ForDeclaration forD1 = builder.declareFor(m2, "i", 1, 3, 1);
+//        ForDeclaration forD2 = builder.declareFor(forD1, "j", 10, 9, -1);
 
-        builder.invokeMethod(forD2, "this", m2.getName(), true,
-                "retM2", forD2.getVariable("j"), m2.getVariable("v2"));
-        builder.invokeMethod(forD2, "this", m1.getName(), true, "retM1b", m1.getVariable("v1"));
-
+//        builder.invokeMethod(forD2, "this", m2.getName(), true,
+//                "retM2", forD2.getVariable("v1"), m2.getVariable("v2"));
+//        builder.invokeMethod(forD2, "this", m1.getName(), true, "retM1b", m1.getVariable("v1"));
         return myFile;
     }
 }
@@ -163,9 +200,20 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
             if (s instanceof ForDeclaration) {
                 ForDeclaration forD = (ForDeclaration) s;
                 cb.append("for(").append("int ").append(forD.getVarName()).
-                        append(" = " + forD.getFrom()).append("; ").append(forD.getVarName()).
-                        append(" <= " + forD.getTo()).append("; ").
-                        append(forD.getVarName()).append("+=" + forD.getInc()).append(") {");
+                         append(" = " + forD.getFrom()).append("; ").append(forD.getVarName()).
+                        append(" <= " + forD.getTo()).append("; ");
+
+                cb.append(forD.getVarName());
+
+                if (forD.getInc() == 1) {
+                    cb.append("++");
+                } else if (forD.getInc() < 0) {
+                    cb.append("-=" + Math.abs(forD.getInc()));
+                } else {
+                    cb.append("+=" + forD.getInc());
+                }
+
+                cb.append(") {");
 
                 if (!s.getControlFlow().getInvocations().isEmpty()) {
                     cb.newLine();
@@ -175,11 +223,11 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
                 for (Invocation j : forD.getControlFlow().getInvocations()) {
                     render(j, cb);
                 }
-                
+
                 if (!s.getControlFlow().getInvocations().isEmpty()) {
                     cb.decIndentation();
                 }
-                
+
                 cb.append("}");
 
             }
@@ -330,13 +378,17 @@ class ClassDeclarationRenderer implements CodeRenderer<ClassDeclaration> {
             return;
         }
 
-        cb.append(" extends ");
-
         boolean first = true;
 
         for (IType type : cd.getExtends().getTypes()) {
+
+            if (type.getFullClassName().equals("java.lang.Object")) {
+                continue;
+            }
+
             if (first) {
                 first = false;
+                cb.append(" extends ");
             } else {
                 cb.append(", ");
             }

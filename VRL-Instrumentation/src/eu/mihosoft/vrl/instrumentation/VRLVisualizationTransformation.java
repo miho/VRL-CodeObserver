@@ -21,12 +21,15 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
+import org.codehaus.groovy.ast.expr.BooleanExpression;
 import org.codehaus.groovy.ast.expr.ClassExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.ConstructorCallExpression;
 import org.codehaus.groovy.ast.expr.DeclarationExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.ast.expr.PostfixExpression;
+import org.codehaus.groovy.ast.expr.PrefixExpression;
 import org.codehaus.groovy.ast.expr.PropertyExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.EmptyStatement;
@@ -91,6 +94,35 @@ public class VRLVisualizationTransformation implements ASTTransformation {
     }
 }
 
+class StateMachine {
+
+    private final Stack<Map<String, Boolean>> stateStack = new Stack<>();
+
+    public void set(String name, boolean state) {
+        stateStack.peek().put(name, state);
+    }
+
+    public boolean get(String name) {
+        Boolean result = stateStack.peek().get(name);
+
+        if (result == null) {
+            return false;
+        }
+
+        return result;
+    }
+
+    public void push(String name, boolean state) {
+        stateStack.push(new HashMap<>());
+        stateStack.peek().put(name, state);
+    }
+
+    public void pop() {
+        stateStack.pop();
+    }
+
+}
+
 class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport {
 
     private SourceUnit sourceUnit;
@@ -99,6 +131,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     private Scope currentScope;
     private Invocation lastMethod;
     private Stack<String> vIdStack = new Stack<>();
+    private final StateMachine stateMachine = new StateMachine();
     private IdGenerator generator = FlowFactory.newIdGenerator();
 
     private Map<MethodCallExpression, String> returnValuesOfMethods
@@ -153,7 +186,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
         System.out.println("CLASS: " + s.getName());
 
 //        currentScope = codeBuilder.createScope(currentScope, ScopeType.CLASS, s.getName(), new Object[0]);
-        currentScope = codeBuilder.declareClass((CompilationUnitDeclaration)currentScope,
+        currentScope = codeBuilder.declareClass((CompilationUnitDeclaration) currentScope,
                 new Type(s.getName(), false),
                 convertModifiers(s.getModifiers()),
                 convertExtends(s),
@@ -199,13 +232,33 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 //    }
     @Override
     public void visitForLoop(ForStatement s) {
-        System.out.println(" --> FOR-LOOP: " + s.getVariable());
-        currentScope = codeBuilder.createScope(currentScope, ScopeType.FOR, "for", new Object[0]);
-//        currentScope.setCode(sourceUnit.getSource().getReader().);
+        System.out.println(" --> FOR-LOOP: " + s.getVariable().getName());
+
+        // predeclaration, ranges will be defined later
+        currentScope = codeBuilder.declareFor(currentScope, s.getVariable().getName(), 0, 0, 0);
+
+        stateMachine.push("for-loop", true);
+
         super.visitForLoop(s);
+
+        if (!stateMachine.get("for-loop:declaration")) {
+            throw new IllegalStateException(
+                    "For loop must contain a variable declaration such as 'int i=0'!");
+        }
+
+        if (!stateMachine.get("for-loop:compareExpression"))  {
+            throw new IllegalStateException("for-loop: must contain binary"
+                    + " expressions of the form 'a <= b' with a, b being"
+                    + " constant integers!");
+        }
+        
+        stateMachine.pop();
+
         currentScope = currentScope.getParent();
 
         currentScope.setCode(getCode(s));
+
+//        System.exit(1);
     }
 
     @Override
@@ -322,7 +375,6 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
                         returnValueName, arguments).setCode(getCode(s));
             }
         }
-        
 
     }
 
@@ -330,18 +382,88 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
     public void visitDeclarationExpression(DeclarationExpression s) {
         System.out.println(" --> DECLARATION: " + s.getVariableExpression());
         super.visitDeclarationExpression(s);
-        codeBuilder.createVariable(currentScope, new Type(s.getVariableExpression().getType().getName(), true), s.getVariableExpression().getName());
 
-        if (s.getRightExpression() instanceof ConstantExpression) {
+        if (currentScope instanceof ForDeclaration_Impl) {
+
+            ForDeclaration_Impl forD = (ForDeclaration_Impl) currentScope;
+            forD.setVarName(s.getVariableExpression().getName());
+
+            if (!(s.getRightExpression() instanceof ConstantExpression)) {
+                throw new IllegalStateException("In for-loop: variable '" + forD.getVarName()
+                        + "' must be initialized with an integer constant!");
+            }
+
             ConstantExpression ce = (ConstantExpression) s.getRightExpression();
-            codeBuilder.assignConstant(currentScope, s.getVariableExpression().getName(), ce.getValue());
+
+            if (!(ce.getValue() instanceof Integer)) {
+                throw new IllegalStateException("In for-loop: variable '" + forD.getVarName()
+                        + "' must be initialized with an integer constant!");
+            }
+
+            forD.setFrom((Integer) ce.getValue());
+
+            stateMachine.set("for-loop:declaration", true);
+
+        } else {
+
+            codeBuilder.createVariable(currentScope, new Type(s.getVariableExpression().getType().getName(), true), s.getVariableExpression().getName());
+
+            if (s.getRightExpression() instanceof ConstantExpression) {
+                ConstantExpression ce = (ConstantExpression) s.getRightExpression();
+                codeBuilder.assignConstant(currentScope, s.getVariableExpression().getName(), ce.getValue());
+            }
         }
     }
 
     @Override
     public void visitBinaryExpression(BinaryExpression s) {
 
+        if (currentScope instanceof ForDeclaration_Impl 
+                && stateMachine.get("for-loop:declaration")) {
+            ForDeclaration_Impl forD = (ForDeclaration_Impl) currentScope;
+
+            if (!(s.getLeftExpression() instanceof VariableExpression)) {
+                throw new IllegalStateException("In for-loop: only binary"
+                        + " expressions of the form 'a <= b' with a, b being"
+                        + " constant integers are supported!");
+            }
+            
+            
+            if (!"<=".equals(s.getOperation().getText())) {
+                throw new IllegalStateException("In for-loop: only binary"
+                        + " expressions of the form 'a <= b' with a, b being"
+                        + " constant integers are supported!");
+            }
+
+            if (!(s.getRightExpression() instanceof ConstantExpression)) {
+                throw new IllegalStateException("In for-loop: only binary"
+                        + " expressions of the form 'a <= b' with a, b being"
+                        + " constant integers are supported!");
+            }
+
+            stateMachine.set("for-loop:compareExpression", true);
+        }
+
         super.visitBinaryExpression(s);
+    }
+
+    @Override
+    public void visitBooleanExpression(BooleanExpression s) {
+
+        super.visitBooleanExpression(s);
+    }
+
+    @Override
+    public void visitPostfixExpression(PostfixExpression expression) {
+        
+        
+
+        super.visitPostfixExpression(expression);
+    }
+
+    @Override
+    public void visitPrefixExpression(PrefixExpression expression) {
+        super.visitPrefixExpression(expression);
     }
 
     /**

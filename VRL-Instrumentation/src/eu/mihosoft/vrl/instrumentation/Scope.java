@@ -121,10 +121,10 @@ class ScopeImpl implements Scope {
                 parentName = parent.getName();
             }
             
-            throw new IllegalArgumentException(
-                    "Variable '"
-                    + name
-                    + "' does not exist in scope '" + parentName + "'!");
+//            throw new IllegalArgumentException(
+//                    "Variable '"
+//                    + name
+//                    + "' does not exist in scope '" + parentName + "'!");
         }
 
         return result;
