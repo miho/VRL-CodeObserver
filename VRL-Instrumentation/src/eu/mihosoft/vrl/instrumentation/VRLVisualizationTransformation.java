@@ -96,17 +96,31 @@ public class VRLVisualizationTransformation implements ASTTransformation {
 
 class StateMachine {
 
-    private final Stack<Map<String, Boolean>> stateStack = new Stack<>();
+    private final Stack<Map<String, Object>> stateStack = new Stack<>();
 
-    public void set(String name, boolean state) {
+    public void setBoolean(String name, boolean state) {
         stateStack.peek().put(name, state);
     }
 
-    public boolean get(String name) {
-        Boolean result = stateStack.peek().get(name);
+    public void setString(String name, String state) {
+        stateStack.peek().put(name, state);
+    }
+
+    public boolean getBoolean(String name) {
+        Boolean result = (Boolean) stateStack.peek().get(name);
 
         if (result == null) {
             return false;
+        }
+
+        return result;
+    }
+
+    public String getString(String name) {
+        String result = (String) stateStack.peek().get(name);
+
+        if (result == null) {
+            return "";
         }
 
         return result;
@@ -241,12 +255,12 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
         super.visitForLoop(s);
 
-        if (!stateMachine.get("for-loop:declaration")) {
+        if (!stateMachine.getBoolean("for-loop:declaration")) {
             throw new IllegalStateException(
                     "For loop must contain a variable declaration such as 'int i=0'!");
         }
 
-        if (!stateMachine.get("for-loop:compareExpression")) {
+        if (!stateMachine.getBoolean("for-loop:compareExpression")) {
             throw new IllegalStateException("for-loop: must contain binary"
                     + " expressions of the form 'a <= b' with a, b being"
                     + " constant integers!");
@@ -387,7 +401,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
             ForDeclaration_Impl forD = (ForDeclaration_Impl) currentScope;
 
-            if (!stateMachine.get("for-loop:declaration")) {
+            if (!stateMachine.getBoolean("for-loop:declaration")) {
                 forD.setVarName(s.getVariableExpression().getName());
 
                 if (!(s.getRightExpression() instanceof ConstantExpression)) {
@@ -404,7 +418,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
                 forD.setFrom((Integer) ce.getValue());
 
-                stateMachine.set("for-loop:declaration", true);
+                stateMachine.setBoolean("for-loop:declaration", true);
             }
 
         } else {
@@ -425,8 +439,8 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
             ForDeclaration_Impl forD = (ForDeclaration_Impl) currentScope;
 
-            if (stateMachine.get("for-loop:declaration")
-                    && !stateMachine.get("for-loop:compareExpression")) {
+            if (stateMachine.getBoolean("for-loop:declaration")
+                    && !stateMachine.getBoolean("for-loop:compareExpression")) {
 
                 if (!(s.getLeftExpression() instanceof VariableExpression)) {
                     throw new IllegalStateException("In for-loop: only binary"
@@ -434,11 +448,14 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
                             + " constant integers are supported!");
                 }
 
-                if (!"<=".equals(s.getOperation().getText())) {
+                if (!"<=".equals(s.getOperation().getText())
+                        && !">=".equals(s.getOperation().getText())) {
                     throw new IllegalStateException("In for-loop: only binary"
                             + " expressions of the form 'a <= b' with a, b being"
                             + " constant integers are supported!");
                 }
+
+                stateMachine.setString("for-loop:compareOperation", s.getOperation().getText());
 
                 if (!(s.getRightExpression() instanceof ConstantExpression)) {
                     throw new IllegalStateException("In for-loop: only binary"
@@ -459,10 +476,10 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
                 forD.setTo((int) ce.getValue());
 
-                stateMachine.set("for-loop:compareExpression", true);
-            } else if (stateMachine.get("for-loop:declaration")
-                    && stateMachine.get("for-loop:compareExpression")
-                    && !stateMachine.get("for-loop:incExpression")) {
+                stateMachine.setBoolean("for-loop:compareExpression", true);
+            } else if (stateMachine.getBoolean("for-loop:declaration")
+                    && stateMachine.getBoolean("for-loop:compareExpression")
+                    && !stateMachine.getBoolean("for-loop:incExpression")) {
 
                 if (!"+=".equals(s.getOperation().getText())
                         && !"-=".equals(s.getOperation().getText())) {
@@ -489,7 +506,29 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
                     forD.setInc(-(int) ce.getValue());
                 }
 
-                stateMachine.set("for-loop:incExpression", true);
+                if (forD.getInc() > 0 && ">=".
+                        equals(stateMachine.getString("for-loop:compareOperation"))) {
+                    throw new IllegalStateException("In for-loop: infinite loops"
+                            + " are not supported! Change '>=' to '<=' to prevent that."
+                    );
+                }
+
+                if (forD.getInc() < 0 && "<=".
+                        equals(stateMachine.getString("for-loop:compareOperation"))) {
+                    throw new IllegalStateException("In for-loop: infinite loops"
+                            + " are not supported! Change '<=' to '>=' to prevent that."
+                    );
+                }
+
+//                System.out.println("s: " + s.getOperation().getText() + ", " + forD.getInc());
+//                System.exit(0);
+                if (forD.getInc() < 0 && "<=".equals(s.getOperation().getText())) {
+                    throw new IllegalStateException("In for-loop: infinite loops"
+                            + " are not supported! Change '<=' to '>=' to prevent that."
+                    );
+                }
+
+                stateMachine.setBoolean("for-loop:incExpression", true);
 
                 //
             }
@@ -517,7 +556,21 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
                 forD.setInc(-1);
             }
 
-            stateMachine.set("for-loop:incExpression", true);
+            if (forD.getInc() > 0 && ">=".
+                    equals(stateMachine.getString("for-loop:compareOperation"))) {
+                throw new IllegalStateException("In for-loop: infinite loops"
+                        + " are not supported! Change '>=' to '<=' to prevent that."
+                );
+            }
+
+            if (forD.getInc() < 0 && "<=".
+                    equals(stateMachine.getString("for-loop:compareOperation"))) {
+                throw new IllegalStateException("In for-loop: infinite loops"
+                        + " are not supported! Change '<=' to '>=' to prevent that."
+                );
+            }
+
+            stateMachine.setBoolean("for-loop:incExpression", true);
         }
 
         super.visitPostfixExpression(s);

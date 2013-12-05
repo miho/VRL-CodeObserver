@@ -129,7 +129,7 @@ public class Scope2Code {
 
         ForDeclaration forD1 = builder.declareFor(m2, "i", 1, 3, 1);
         ForDeclaration forD2 = builder.declareFor(forD1, "j", 10, 9, -1);
-        
+
         builder.invokeMethod(forD2, "this", m1.getName(), true, "retM1c", forD2.getVariable("j"));
 
 //        builder.invokeMethod(forD2, "this", m2.getName(), true,
@@ -202,8 +202,15 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
             if (s instanceof ForDeclaration) {
                 ForDeclaration forD = (ForDeclaration) s;
                 cb.append("for(").append("int ").append(forD.getVarName()).
-                         append(" = " + forD.getFrom()).append("; ").append(forD.getVarName()).
-                        append(" <= " + forD.getTo()).append("; ");
+                        append(" = " + forD.getFrom()).append("; ").append(forD.getVarName());
+
+                if (forD.getInc() > 0) {
+                    cb.append(" <= " + forD.getTo());
+                } else {
+                    cb.append(" >= " + forD.getTo());
+                }
+
+                cb.append("; ");
 
                 cb.append(forD.getVarName());
 
