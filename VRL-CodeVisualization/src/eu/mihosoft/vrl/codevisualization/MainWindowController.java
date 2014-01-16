@@ -15,6 +15,7 @@ import eu.mihosoft.vrl.instrumentation.ScopeInvocation;
 import eu.mihosoft.vrl.instrumentation.ScopeType;
 import eu.mihosoft.vrl.instrumentation.UIBinding;
 import eu.mihosoft.vrl.instrumentation.Variable;
+import eu.mihosoft.vrl.workflow.ConnectionResult;
 //import eu.mihosoft.vrl.worflow.layout.Layout;
 //import eu.mihosoft.vrl.worflow.layout.LayoutFactory;
 import eu.mihosoft.vrl.workflow.Connector;
@@ -61,6 +62,7 @@ public class MainWindowController implements Initializable {
     private Pane rootPane;
     private VFlow flow;
     private Map<CodeEntity, VNode> invocationNodes = new HashMap<>();
+    private Map<String, Connector> variableConnectors = new HashMap<String, Connector>();
 
     /**
      * Initializes the controller class.
@@ -72,6 +74,10 @@ public class MainWindowController implements Initializable {
 
         ScalableContentPane canvas = new ScalableContentPane();
         canvas.setStyle("-fx-background-color: rgb(0,0, 0)");
+        
+        canvas.setMaxScaleX(1);
+        canvas.setMaxScaleY(1);
+        
         view.getChildren().add(canvas);
 
         Pane root = new Pane();
@@ -174,8 +180,8 @@ public class MainWindowController implements Initializable {
 
             editor.setText(new String(Files.readAllBytes(Paths.get(currentDocument.getAbsolutePath())), "UTF-8"));
             
-            CompilationUnitDeclaration cu = Scope2Code.demoScope();
-            editor.setText(Scope2Code.getCode(cu));
+//            CompilationUnitDeclaration cu = Scope2Code.demoScope();
+//            editor.setText(Scope2Code.getCode(cu));
 
             updateView();
 
@@ -191,7 +197,6 @@ public class MainWindowController implements Initializable {
             System.err.println("UI NOT READY");
             return;
         }
-
 
         UIBinding.scopes.clear();
 
@@ -220,7 +225,6 @@ public class MainWindowController implements Initializable {
         }
 
         FXSkinFactory skinFactory = new FXSkinFactory(rootPane);
-
         flow.setSkinFactories(skinFactory);
 
 //        Layout layout = LayoutFactory.newDefaultLayout();
@@ -246,25 +250,27 @@ public class MainWindowController implements Initializable {
 
                 System.out.println("SENDER: " + sender.getId() + ", receiver: " + receiver.getId());
 
-                Connector senderConnector = sender.getConnector("4");
-
                 String retValueName
                         = dataRelation.getSender().getReturnValueName();
+                
+                System.out.println(" --> sender: " + retValueName);
+                
+                Connector senderConnector = getVariableById(sender, retValueName);
 
-//                 parent.connect(
-//                                senderConnector, receiver.getConnector(""));
                 int inputIndex = 0;
 
                 for (Variable var : dataRelation.getReceiver().getArguments()) {
-                    System.out.println("var: " + var);
+                    System.out.println(" --> receiver: " + var.getName() + ", (possible receiver)");
                     if (var.getName().equals(retValueName)) {
-                        Connector receiverConnector
-                                = receiver.getConnector("3");
+                        Connector receiverConnector = getVariableById(receiver, var.getName());
 
-                        parent.connect(
+                        ConnectionResult result = parent.connect(
                                 senderConnector, receiverConnector);
+                        
+                        System.out.println(" -> connected: " + result.getStatus().isCompatible());
+                        System.out.println(" -> " + result.getStatus().getMessage());
 
-                        System.out.println(inputIndex + "connect: " + senderConnector.getType() + ":" + senderConnector.isOutput() + " -> " + receiverConnector.getType() + ":" + receiverConnector.isInput());
+//                        System.out.println(inputIndex + " = connect: " + senderConnector.getType() + ":" + senderConnector.isOutput() + " -> " + receiverConnector.getType() + ":" + receiverConnector.isInput());
                     }
                     inputIndex++;
                 }
@@ -324,11 +330,16 @@ public class MainWindowController implements Initializable {
             }
 
             for (Variable v : i.getArguments()) {
-                n.addInput("data");
+                Connector input = n.addInput("data");
+                System.out.println(" > Write Connector: ");
+                variableConnectors.put(getVariableId(n, v), input);
             }
 
             if (!i.isVoid()) {
-                n.addOutput("data");
+                Connector output = n.addOutput("data");
+                Variable v = scope.getVariable(i.getReturnValueName());
+                System.out.println(" > Write Connector: ");
+                variableConnectors.put(getVariableId(n, v), output);
             }
 
             n.setWidth(400);
@@ -348,5 +359,25 @@ public class MainWindowController implements Initializable {
         dataFlowToFlow(scope, result);
 
         return result;
+    }
+    
+    public static String getVariableId(VNode n, Variable v) {
+        String id = n.getId() + ":" + v.getName();
+        
+        System.out.println("id: " + id);
+        
+        return id;
+    }
+    
+    public static String getVariableId(VNode n, String varName) {
+        String id = n.getId() + ":" + varName;
+        
+        System.out.println("id: " + id);
+        
+        return id;
+    }
+    
+    public Connector getVariableById(VNode n, String varName) {
+        return variableConnectors.get(getVariableId(n, varName));
     }
 }
