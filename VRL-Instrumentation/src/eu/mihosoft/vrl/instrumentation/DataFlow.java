@@ -95,12 +95,12 @@ class DataFlowImpl implements DataFlow {
         for (Invocation i : controlFlow.getInvocations()) {
             if (i instanceof ScopeInvocation) {
                 Scope subScope = ((ScopeInvocation) i).getScope();
-                subScope.getDataFlow().create(controlFlow);
+                subScope.getDataFlow().create(subScope.getControlFlow());
             }
         }
 
     }
-//
+
 //    public void generateDataFlow() {
 //
 //        System.out.println("DATAFLOW---------------------------------");
