@@ -1,48 +1,16 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+package my.testpackage;
 
-package eu.mihosoft.vrl.instrumentation;
-
-import groovy.transform.TypeChecked;
-
-/**
- *
- * @author Michael Hoffer <info@michaelhoffer.de>
- */
-//@VRLInstrumentation 
-@VRLVisualization
-class SampleClass { 
+@eu.mihosoft.vrl.instrumentation.VRLVisualization
+public class MyFileClass {
     
-    SampleClass() {
-	}
-
+    int value1;
     
-    void playground() {
-      
-      int a = 1
-      int b = 2
-      
-      methodTwo(methodOne(a),methodOne(b))
-      
+    public int m1(int v1) {
+        this.m2(this.m1(v1), this.m1(v1));
     }
-    
-    int methodOne(int a) {  
-	  System.out.println("Test1")
-          System.out.println("Test2")
-	  return a;
-    }
-    
-    int methodTwo(int a, int b) {
 
-          methodOne(a);
-
-	  return a+b;
+    public int m2(int v1, int v2) {
+      return m2(m1(v1), m1(v2))
     }
    
 }
-
-   
-
-   
