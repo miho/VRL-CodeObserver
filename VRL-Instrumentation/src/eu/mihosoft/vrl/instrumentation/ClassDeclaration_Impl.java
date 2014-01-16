@@ -24,7 +24,7 @@ class ClassDeclaration_Impl extends ScopeImpl implements ClassDeclaration {
     }
 
     @Override
-    public IType getClassType() {
+    public final IType getClassType() {
         return metadata.getType();
     }
 

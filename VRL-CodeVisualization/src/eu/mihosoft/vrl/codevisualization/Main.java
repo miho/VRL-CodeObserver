@@ -52,7 +52,7 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         
-        controller.loadTextFile(new File("../Sample.groovy"));
+        //controller.loadTextFile(new File("../Sample.groovy"));
         
         scene.getStylesheets().add("/eu/mihosoft/vrl/codevisualization/resources/default.css");
 

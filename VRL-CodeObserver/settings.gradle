@@ -1,2 +1,5 @@
 include "VRL-Instrumentation"
 project(':VRL-Instrumentation').projectDir = new File(settingsDir, '../VRL-Instrumentation')
+
+include "vworkflows-core"
+project(":vworkflows-core").projectDir = new File(settingsDir, "../../VWorkflows/VWorkflows-Core")

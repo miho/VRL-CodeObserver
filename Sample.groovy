@@ -16,7 +16,7 @@ import groovy.transform.TypeChecked;
 class SampleClass { 
     
     SampleClass() {
-    }
+	}
 
     
     void playground() {
@@ -28,12 +28,17 @@ class SampleClass {
       
     }
     
-     int methodOne(int a) {  
-	return a;
+    int methodOne(int a) {  
+	  System.out.println("Test1")
+          System.out.println("Test2")
+	  return a;
     }
     
     int methodTwo(int a, int b) {
-	return a+b;
+
+          methodOne(a);
+
+	  return a+b;
     }
    
 }

@@ -10,7 +10,7 @@ repositories {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.6'
+    gradleVersion = '1.10'
 }
 
 String javaVersion = System.getProperty("java.version")
@@ -32,11 +32,13 @@ dependencies {
     compile project(":VRL-Instrumentation")
     //compile "org.jfxtras:jfxtras-labs-8.0:8.0-r1-SNAPSHOT"
     
-    if (jdk==8) {
-        compile "eu.mihosoft.vrl.workflow-8.0:vworkflows-fx:0.1-r1-SNAPSHOT"
-    } else {
-        compile "eu.mihosoft.vrl.workflow:vworkflows-fx:0.1-r1-SNAPSHOT"
-    }
+    compile project(":vworkflows-fx")
+    
+//    if (jdk==8) {
+//        compile "eu.mihosoft.vrl.workflow-8.0:vworkflows-fx:0.1-r1-SNAPSHOT"
+//    } else {
+//        compile "eu.mihosoft.vrl.workflow:vworkflows-fx:0.1-r1-SNAPSHOT"
+//    }
 }
 
 sourceSets {

@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -44,7 +43,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooserBuilder;
 
@@ -176,8 +174,8 @@ public class MainWindowController implements Initializable {
 
             editor.setText(new String(Files.readAllBytes(Paths.get(currentDocument.getAbsolutePath())), "UTF-8"));
             
-//            CompilationUnitDeclaration cu = Scope2Code.demoScope();
-//            editor.setText(Scope2Code.getCode(cu));
+            CompilationUnitDeclaration cu = Scope2Code.demoScope();
+            editor.setText(Scope2Code.getCode(cu));
 
             updateView();
 

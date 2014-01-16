@@ -41,7 +41,7 @@ import org.codehaus.groovy.transform.StaticTypesTransformation;
 import org.codehaus.groovy.transform.stc.StaticTypesMarker;
 
 /**
- * Adds instrumentation to each method call. Use {@link VRLInstrumentation} to
+ * Adds instrumentation to each method call. Use {@link VRLVisualization} to
  * request this transformation.
  *
  * @author Michael Hoffer <info@michaelhoffer.de>
@@ -265,6 +265,18 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
                     + " expressions of the form 'a <= b' with a, b being"
                     + " constant integers!");
         }
+        
+        if (!stateMachine.getBoolean("for-loop:incExpression")) {
+            throw new IllegalStateException("for-loop: must contain binary"
+                    + " expressions of the form 'a <= b' with a, b being"
+                    + " constant integers!");
+        }
+
+//        if (!stateMachine.getBoolean("for-loop:compareExpression")) {
+//            throw new IllegalStateException("for-loop: must contain binary"
+//                    + " expressions of the form 'a <= b' with a, b being"
+//                    + " constant integers!");
+//        }
 
         stateMachine.pop();
 
@@ -451,7 +463,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
                 if (!"<=".equals(s.getOperation().getText())
                         && !">=".equals(s.getOperation().getText())) {
                     throw new IllegalStateException("In for-loop: only binary"
-                            + " expressions of the form 'a <= b' with a, b being"
+                            + " expressions of the form 'a <= b' or 'a >= b' with a, b being"
                             + " constant integers are supported!");
                 }
 
@@ -459,7 +471,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
                 if (!(s.getRightExpression() instanceof ConstantExpression)) {
                     throw new IllegalStateException("In for-loop: only binary"
-                            + " expressions of the form 'a <= b' with a, b being"
+                            + " expressions of the form 'a <= b' or 'a >= b' with a, b being"
                             + " constant integers are supported!");
                 }
 
@@ -470,7 +482,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 //                            + "' is not an integer constant! ");
 
                     throw new IllegalStateException("In for-loop: only binary"
-                            + " expressions of the form 'a <= b' with a, b being"
+                            + " expressions of the form 'a <= b' or 'a >= b' with a, b being"
                             + " constant integers are supported!");
                 }
 
@@ -485,7 +497,7 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
                         && !"-=".equals(s.getOperation().getText())) {
                     throw new IllegalStateException("In for-loop: inc/dec '"
                             + s.getOperation().getText()
-                            + "' not spupported! Must be '+=' or '-='!");
+                            + "' not spupported! Must be '+=' or '-=' or '++' or '--'!");
                 }
 
                 if (!(s.getRightExpression() instanceof ConstantExpression)) {
@@ -522,11 +534,11 @@ class VGroovyCodeVisitor extends org.codehaus.groovy.ast.ClassCodeVisitorSupport
 
 //                System.out.println("s: " + s.getOperation().getText() + ", " + forD.getInc());
 //                System.exit(0);
-                if (forD.getInc() < 0 && "<=".equals(s.getOperation().getText())) {
-                    throw new IllegalStateException("In for-loop: infinite loops"
-                            + " are not supported! Change '<=' to '>=' to prevent that."
-                    );
-                }
+//                if (forD.getInc() < 0 && "<=".equals(s.getOperation().getText())) {
+//                    throw new IllegalStateException("In for-loop: infinite loops"
+//                            + " are not supported! Change '<=' to '>=' to prevent that."
+//                    );
+//                }
 
                 stateMachine.setBoolean("for-loop:incExpression", true);
 

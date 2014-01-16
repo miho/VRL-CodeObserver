@@ -6,6 +6,7 @@
 package eu.mihosoft.vrl.instrumentation;
 
 //import org.stringtemplate.v4.ST;
+import eu.mihosoft.vrl.lang.VLangUtils;
 import groovy.lang.GroovyClassLoader;
 import java.util.Collection;
 import java.util.HashMap;
@@ -105,7 +106,8 @@ public class Scope2Code {
     public static CompilationUnitDeclaration demoScope() {
         VisualCodeBuilder builder = new VisualCodeBuilder_Impl();
 
-        CompilationUnitDeclaration myFile = builder.declareCompilationUnit("MyFile.java", "my.testpackage");
+        CompilationUnitDeclaration myFile = builder.declareCompilationUnit(
+                "MyFile.java", "my.testpackage");
         ClassDeclaration myFileClass = builder.declareClass(myFile,
                 new Type("my.testpackage.MyFileClass"),
                 new Modifiers(Modifier.PUBLIC), new Extends(), new Extends());
@@ -131,6 +133,11 @@ public class Scope2Code {
         ForDeclaration forD2 = builder.declareFor(forD1, "j", 10, 9, -1);
 
         builder.invokeMethod(forD2, "this", m1.getName(), true, "retM1c", forD2.getVariable("j"));
+        
+        Variable var = forD2.createVariable(new Type("java.lang.String"));
+        forD2.assignConstant(var.getName(), "Hello!\"");
+        
+        builder.invokeStaticMethod(forD2, new Type("System"), "out.println", true, "", var);
 
 //        builder.invokeMethod(forD2, "this", m2.getName(), true,
 //                "retM2", forD2.getVariable("v1"), m2.getVariable("v2"));
@@ -264,7 +271,17 @@ class InvocationCodeRenderer implements CodeRenderer<Invocation> {
             }
 
             if (v.isConstant()) {
-                cb.append(v.getValue().toString());
+                
+                String constString = null;
+                
+                if (v.getType().equals(new Type("java.lang.String"))) {
+                    constString = "\""+VLangUtils.addEscapeCharsToCode(v.getValue().toString())+"\"";
+                } else {
+                    constString = v.getValue().toString();
+                }
+                
+                cb.append(constString);
+                
             } else {
                 cb.append(v.getName());
             }
